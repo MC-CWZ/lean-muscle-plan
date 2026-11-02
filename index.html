@@ -46,6 +46,14 @@
     padding:8px 14px;border-radius:999px;font-size:14px;font-weight:700}
   .streak .n{color:var(--accent)}
 
+  /* ===== 右上角登录入口 ===== */
+  .acct-float{position:fixed;top:14px;right:14px;z-index:60;display:inline-flex;align-items:center;gap:7px;
+    background:rgba(20,22,26,.88);border:1px solid var(--line);color:var(--ink);padding:9px 15px;border-radius:999px;
+    font-size:13.5px;font-weight:700;cursor:pointer;backdrop-filter:blur(8px);box-shadow:0 4px 18px rgba(0,0,0,.4);transition:.15s}
+  .acct-float:hover{border-color:var(--accent);color:var(--accent)}
+  .acct-float .dot{width:8px;height:8px;border-radius:50%;background:var(--muted2);flex:none}
+  .acct-float.on .dot{background:var(--good)}
+
   .banner{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25);color:#fcd34d;border-radius:12px;
     padding:12px 16px;font-size:13px;margin:14px 0 4px}
   .banner b{color:#fbbf24}
@@ -188,6 +196,7 @@
 </style>
 </head>
 <body>
+<button class="acct-float" id="acctBtn" onclick="acctClick()"><span class="dot"></span><span id="acctTxt">登录 / 注册</span></button>
 <div class="wrap">
 
   <!-- 激励 Hero -->
@@ -211,7 +220,6 @@
   <div class="bar">
     <h2>🔥 今日作战</h2>
     <div style="display:flex;gap:8px;align-items:center">
-      <button class="btn-ghost btn-small" id="acctBtn" onclick="acctClick()">☁️ 登录同步</button>
       <button class="btn-ghost btn-small" onclick="openSetup()">⚙️ 设置</button>
       <div class="streak">🔥 连续打卡 <span class="n" id="streakCount">0</span> 天</div>
     </div>
@@ -1102,10 +1110,12 @@ async function doLogin(){
 }
 async function updateAuthUI(){
   const btn = document.getElementById('acctBtn');
-  if(!btn) return;
-  if(!SUPABASE){ btn.textContent = '☁️ 未配置'; return; }
+  const txt = document.getElementById('acctTxt');
+  if(!btn || !txt) return;
+  if(!SUPABASE){ txt.textContent = '未配置'; return; }
   const u = (await SUPABASE.auth.getUser()).data.user;
-  btn.textContent = u ? ('☁️ ' + (u.email || '已登录')) : '☁️ 登录同步';
+  if(u){ btn.classList.add('on'); txt.textContent = u.email || '已登录'; }
+  else { btn.classList.remove('on'); txt.textContent = '登录 / 注册'; }
 }
 async function pushToday(){
   if(!SUPABASE) return;
