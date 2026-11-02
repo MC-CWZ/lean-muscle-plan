@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>薄肌养成 · 减脂打卡计划</title>
+<style>
+  :root{
+    --bg:#0b0d10; --card:#14161a; --card2:#1a1e24; --line:#262b33;
+    --ink:#f3f4f6; --muted:#9aa3af; --muted2:#6b7280;
+    --accent:#ff6b1a; --accent2:#f43f5e;
+    --grad:linear-gradient(135deg,#ff6b1a,#f43f5e);
+    --protein:#38bdf8; --fat:#fbbf24; --carb:#34d399;
+    --good:#34d399; --warn:#fbbf24;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:960px;margin:0 auto;padding:0 16px 80px}
+  a{color:var(--accent)}
+
+  /* ===== Hero ===== */
+  .hero{position:relative;margin:0 -16px 22px;min-height:340px;display:flex;align-items:flex-end;
+    background:#0d0f13;overflow:hidden}
+  .hero .bg{position:absolute;inset:0;background-size:cover;background-position:center 30%;opacity:.55;filter:contrast(1.05)}
+  .hero .ov{position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,13,16,.35) 0%,rgba(11,13,16,.55) 45%,#0b0d10 100%)}
+  .hero-in{position:relative;padding:28px 22px 24px;width:100%}
+  .hero-tag{display:inline-block;font-size:12px;letter-spacing:2px;font-weight:700;color:#0b0d10;
+    background:var(--grad);padding:4px 12px;border-radius:999px;margin-bottom:12px}
+  .hero h1{font-size:40px;line-height:1.15;margin:0;letter-spacing:1px;font-weight:900}
+  .hero h1 .em{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero-sub{color:var(--muted);font-size:14px;margin:10px 0 20px}
+  .hero-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  @media(max-width:640px){.hero-stats{grid-template-columns:repeat(2,1fr)}.hero h1{font-size:32px}}
+  .hs{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 14px;backdrop-filter:blur(4px)}
+  .hs b{display:block;font-size:22px;font-weight:800;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hs span{font-size:11.5px;color:var(--muted)}
+
+  /* ===== Header bar ===== */
+  .bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 0 4px;flex-wrap:wrap}
+  .bar h2{font-size:22px;margin:0;font-weight:800}
+  .streak{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);
+    padding:8px 14px;border-radius:999px;font-size:14px;font-weight:700}
+  .streak .n{color:var(--accent)}
+
+  .banner{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25);color:#fcd34d;border-radius:12px;
+    padding:12px 16px;font-size:13px;margin:14px 0 4px}
+  .banner b{color:#fbbf24}
+
+  section{margin-top:24px}
+  .sec-title{display:flex;align-items:center;gap:8px;font-size:18px;font-weight:800;margin:0 0 12px}
+  .sec-title .em{font-size:20px}
+  .sec-title .lbl{font-size:12px;color:var(--muted);font-weight:500;margin-left:auto}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .card2{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:16px}
+
+  /* ===== Targets ===== */
+  .targets{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  @media(max-width:640px){.targets{grid-template-columns:repeat(2,1fr)}}
+  .t{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+  .t .lab{font-size:13px;color:var(--muted);margin-bottom:6px}
+  .t .val{font-size:15px;font-weight:700}
+  .t .val small{font-weight:400;color:var(--muted);font-size:12px}
+  .bar{height:8px;background:var(--card2);border-radius:999px;margin-top:8px;overflow:hidden}
+  .bar i{display:block;height:100%;border-radius:999px;transition:width .3s}
+  .b-kcal i{background:var(--grad)}
+  .b-protein i{background:var(--protein)}
+  .b-fat i{background:var(--fat)}
+  .b-carb i{background:var(--carb)}
+
+  /* ===== Weight ===== */
+  .weight-row{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+  .weight-row .big{font-size:15px}
+  .weight-row .big b{color:var(--accent);font-size:20px}
+  .w-inline{display:flex;gap:8px}
+  input,select{background:var(--card2);border:1px solid var(--line);color:var(--ink);
+    padding:9px 11px;border-radius:10px;font-size:14px;outline:none}
+  input:focus,select:focus{border-color:var(--accent)}
+  select{max-width:270px}
+
+  /* ===== Meal cards ===== */
+  .meals{display:flex;flex-direction:column;gap:16px}
+  .meal-hero{position:relative;height:118px;border-radius:12px;overflow:hidden;background:linear-gradient(135deg,#1c2027,#14161a)}
+  .meal-hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.6}
+  .meal-hero .ov{position:absolute;inset:0;background:linear-gradient(90deg,rgba(11,13,16,.82) 0%,rgba(11,13,16,.25) 70%,rgba(11,13,16,.1) 100%)}
+  .meal-hero .txt{position:absolute;left:16px;bottom:12px;font-size:19px;font-weight:800;display:flex;align-items:center;gap:10px}
+  .meal-tag{font-size:11px;color:#0b0d10;background:var(--grad);padding:2px 9px;border-radius:999px;font-weight:700}
+  .meal-tag.ghost{background:rgba(255,255,255,.14);color:#fff}
+  .meal-body{padding:14px 16px 16px}
+  .meal-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+  .src{font-size:12px;color:var(--muted2);margin:2px 0 12px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{padding:7px 8px;text-align:right;border-bottom:1px solid var(--line)}
+  th:first-child,td:first-child{text-align:left}
+  th{color:var(--muted2);font-weight:600;font-size:12px}
+  tr.total td{font-weight:800;border-bottom:none;border-top:2px solid var(--line);background:rgba(255,107,26,.06)}
+  tr.total td:first-child{color:var(--accent)}
+  .meal-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;flex-wrap:wrap}
+  .macro-pills{display:flex;gap:8px;flex-wrap:wrap}
+  .pill{font-size:12px;padding:4px 10px;border-radius:999px;background:var(--card2);color:#d1d5db;font-weight:600}
+  .pill.p-protein{background:rgba(56,189,248,.12);color:var(--protein)}
+  .pill.p-fat{background:rgba(251,191,36,.12);color:var(--fat)}
+  .pill.p-carb{background:rgba(52,211,153,.12);color:var(--carb)}
+  .pill.p-kcal{background:rgba(255,107,26,.14);color:var(--accent)}
+
+  button{cursor:pointer;border:none;border-radius:10px;font-size:14px;font-weight:700;
+    padding:10px 18px;transition:.15s}
+  .btn-primary{background:var(--grad);color:#0b0d10}
+  .btn-primary:hover{filter:brightness(1.08)}
+  .btn-primary.checked{background:var(--card2);color:var(--muted);border:1px solid var(--line)}
+  .btn-ghost{background:var(--card2);color:#d1d5db;border:1px solid var(--line)}
+  .btn-ghost:hover{background:#23282f}
+  .btn-small{padding:7px 12px;font-size:13px}
+
+  /* ===== custom food ===== */
+  .food-form{display:grid;grid-template-columns:1.4fr .8fr .8fr .8fr .8fr 1fr auto;gap:8px;align-items:center}
+  @media(max-width:720px){.food-form{grid-template-columns:1fr 1fr}}
+  .food-form input,.food-form select{width:100%}
+  .custom-list{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+  .custom-list li{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px;padding:9px 12px;background:var(--card2);border-radius:10px}
+  .custom-list .del{color:var(--accent2);cursor:pointer;font-weight:700;padding:0 6px}
+  .quick{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
+
+  /* ===== workout ===== */
+  .wo-hero{position:relative;height:130px;border-radius:12px;overflow:hidden;background:linear-gradient(135deg,#1c2027,#14161a);margin-bottom:14px}
+  .wo-hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55}
+  .wo-hero .ov{position:absolute;inset:0;background:linear-gradient(90deg,rgba(11,13,16,.85) 0%,rgba(11,13,16,.3) 75%)}
+  .wo-hero .txt{position:absolute;left:16px;bottom:14px;font-size:20px;font-weight:800}
+  .wo-hero .txt small{display:block;font-size:12px;color:var(--muted);font-weight:500;margin-top:2px}
+  .wo-moves{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+  .wo-move{display:flex;align-items:flex-start;gap:12px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--card2)}
+  .wo-move input[type=checkbox]{width:20px;height:20px;margin-top:2px;accent-color:var(--accent);flex:none}
+  .wo-move .body{flex:1}
+  .wo-title{background:none;border:none;padding:0;margin:0;color:var(--ink);font-size:15px;font-weight:700;text-align:left;cursor:pointer;display:flex;align-items:center;gap:8px;width:100%;transition:.15s}
+  .wo-title:hover{color:var(--accent)}
+  .wo-title .arrow{margin-left:auto;font-size:12px;color:var(--muted);font-weight:600;opacity:0;transform:translateX(-4px);transition:.15s;flex:none}
+  .wo-title:hover .arrow{opacity:1;transform:translateX(0);color:var(--accent)}
+  .wo-move .meta{font-size:13px;color:var(--muted)}
+  .wo-move .tip{font-size:12.5px;color:#d1d5db;margin-top:3px}
+  .wo-move .gear{font-size:11px;background:rgba(255,107,26,.14);color:var(--accent);padding:1px 8px;border-radius:6px;margin-left:6px}
+  .wo-move.done .wo-title{text-decoration:line-through;color:var(--muted2)}
+  .warmup{margin-top:14px;padding:12px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);border-radius:12px;font-size:13.5px}
+  .warmup b{color:#fbbf24}
+
+  /* ===== modal ===== */
+  .modal-ov{position:fixed;inset:0;background:rgba(5,6,8,.72);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:100;padding:18px}
+  .modal-ov.open{display:flex}
+  .modal{background:var(--card);border:1px solid var(--line);border-radius:16px;max-width:600px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.55);animation:pop .22s ease}
+  @keyframes pop{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:none}}
+  .modal-head{position:sticky;top:0;z-index:1;background:var(--card);padding:18px 20px 12px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+  .modal-head h3{margin:0;font-size:20px;font-weight:800;line-height:1.3}
+  .modal-head .tags{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+  .modal-close{background:var(--card2);border:1px solid var(--line);color:var(--muted);width:34px;height:34px;border-radius:9px;font-size:16px;font-weight:700;cursor:pointer;flex:none}
+  .modal-close:hover{color:var(--ink)}
+  .modal-body{padding:16px 20px 20px}
+  .dl{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .dl .cell{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .dl .cell .k{font-size:11px;color:var(--muted);letter-spacing:1px;margin-bottom:3px}
+  .dl .cell .v{font-size:13.5px;font-weight:700}
+  .detail-block{margin-top:16px}
+  .detail-block h4{margin:0 0 8px;font-size:14px;font-weight:800;display:flex;align-items:center;gap:6px}
+  .detail-block p{margin:0;font-size:14px;color:#d1d5db;line-height:1.7}
+  .detail-block ol{margin:0;padding-left:20px;font-size:14px;color:#d1d5db;line-height:1.9}
+  .detail-block ul{margin:0;padding-left:0;list-style:none;font-size:13.5px;color:#d1d5db;line-height:1.8}
+  .detail-block li.err{color:#fca5a5}
+  .detail-block li.ok{color:#86efac}
+  .modal-foot{position:sticky;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:12px 20px;display:flex;justify-content:space-between;gap:10px;align-items:center}
+  .modal-foot .pg{font-size:12px;color:var(--muted)}
+  .setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+  .setup-grid label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted)}
+  .setup-grid input,.setup-grid select{width:100%}
+  .calc-row{display:flex;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap}
+  .calc-result{font-size:12.5px;color:var(--accent);font-weight:600}
+
+  /* ===== history ===== */
+  .hist{width:100%;border-collapse:collapse;font-size:14px}
+  .hist th,.hist td{padding:9px 8px;text-align:center;border-bottom:1px solid var(--line)}
+  .hist th{color:var(--muted2);font-weight:600;font-size:12px}
+  .hist th:first-child,.hist td:first-child{text-align:left}
+  .dot-ok{color:var(--good);font-weight:700}
+  .dot-no{color:#3a4048}
+  footer{margin-top:40px;font-size:12px;color:var(--muted2);border-top:1px solid var(--line);padding-top:16px}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- 激励 Hero -->
+  <div class="hero">
+    <div class="bg" style="background-image:url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1600&q=80&auto=format&fit=crop')"></div>
+    <div class="ov"></div>
+    <div class="hero-in">
+      <span class="hero-tag">薄肌养成 · 减脂计划</span>
+      <h1>没有借口<br><span class="em">只有行动</span></h1>
+      <p class="hero-sub">把每一餐、每一次训练，都变成变强的证据。</p>
+      <div class="hero-stats">
+        <div class="hs"><b id="hStreak">0</b><span>连续打卡(天)</span></div>
+        <div class="hs"><b id="hLost">0</b><span>已减(kg)</span></div>
+        <div class="hs"><b id="hKcal">0</b><span id="hKcalLabel">今日热量 / —</span></div>
+        <div class="hs"><b id="hPro">0</b><span id="hProLabel">蛋白 / —g</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 顶部条 -->
+  <div class="bar">
+    <h2>🔥 今日作战</h2>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="btn-ghost btn-small" onclick="openSetup()">⚙️ 设置</button>
+      <div class="streak">🔥 连续打卡 <span class="n" id="streakCount">0</span> 天</div>
+    </div>
+  </div>
+
+  <div class="banner">
+    ⚠️ <b>大体重安全提醒</b>：较大基数减脂阶段，开始前建议先体检（血压/血糖/血脂/肝肾功能）。训练以<b>低冲击、护膝</b>动作为主；胸闷、头晕、关节疼痛立即停止。减脂速度每周 0.5–1kg 为宜。
+  </div>
+
+  <!-- 今日目标 -->
+  <section>
+    <h2 class="sec-title"><span class="em">🎯</span>今日目标与进度<span class="lbl">已打卡的计入</span></h2>
+    <div class="targets">
+      <div class="t"><div class="lab">热量 kcal</div><div class="val"><span id="vKcal">0</span> <small id="tKcal">/ —</small></div><div class="bar b-kcal"><i id="bKcal" style="width:0%"></i></div></div>
+      <div class="t"><div class="lab">蛋白质 g</div><div class="val"><span id="vProtein">0</span> <small id="tProtein">/ —</small></div><div class="bar b-protein"><i id="bProtein" style="width:0%"></i></div></div>
+      <div class="t"><div class="lab">脂肪 g</div><div class="val"><span id="vFat">0</span> <small id="tFat">/ —</small></div><div class="bar b-fat"><i id="bFat" style="width:0%"></i></div></div>
+      <div class="t"><div class="lab">碳水 g</div><div class="val"><span id="vCarb">0</span> <small id="tCarb">/ —</small></div><div class="bar b-carb"><i id="bCarb" style="width:0%"></i></div></div>
+    </div>
+  </section>
+
+  <!-- 体重记录 -->
+  <section>
+    <h2 class="sec-title"><span class="em">⚖️</span>体重记录</h2>
+    <div class="card">
+      <div class="weight-row">
+        <div class="big"><span id="wStart">起始 —kg</span> · 最新 <b id="wLatest">—</b>kg · 已减 <b id="wLost">—</b>kg</div>
+        <div class="w-inline">
+          <input id="wInput" type="number" step="0.1" placeholder="今日体重 kg">
+          <button class="btn-primary btn-small" onclick="logWeight()">记录</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 三餐推荐 -->
+  <section>
+    <h2 class="sec-title"><span class="em">🍽️</span>今日三餐推荐<span class="lbl">可下拉换搭配</span></h2>
+    <div class="meals" id="meals"></div>
+  </section>
+
+  <!-- 自定义记录 -->
+  <section>
+    <h2 class="sec-title"><span class="em">📝</span>额外记录吃的东西</h2>
+    <div class="card">
+      <div class="food-form">
+        <input id="fName" placeholder="食物名，如：鸡胸肉">
+        <input id="fKcal" type="number" placeholder="热量 kcal">
+        <input id="fPro" type="number" placeholder="蛋白 g">
+        <input id="fFat" type="number" placeholder="脂肪 g">
+        <input id="fCarb" type="number" placeholder="碳水 g">
+        <select id="fMeal">
+          <option value="早餐">早餐</option>
+          <option value="午餐">午餐</option>
+          <option value="晚餐">晚餐</option>
+          <option value="加餐">加餐</option>
+        </select>
+        <button class="btn-primary btn-small" onclick="addCustom()">添加</button>
+      </div>
+      <div class="quick">
+        <span style="font-size:12px;color:var(--muted)">常用速加：</span>
+        <button class="btn-ghost btn-small" onclick="quickAdd('水煮蛋',78,6.5,5.3,0.6)">水煮蛋</button>
+        <button class="btn-ghost btn-small" onclick="quickAdd('鸡胸肉 100g',110,23,2,0)">鸡胸肉100g</button>
+        <button class="btn-ghost btn-small" onclick="quickAdd('香蕉 1根',89,1.1,0.3,23)">香蕉</button>
+        <button class="btn-ghost btn-small" onclick="quickAdd('无糖酸奶 100g',60,10,0,4)">无糖酸奶</button>
+        <button class="btn-ghost btn-small" onclick="quickAdd('乳清蛋白粉 1勺',120,24,2,3)">蛋白粉</button>
+        <button class="btn-ghost btn-small" onclick="quickAdd('混合坚果 10g',60,2,5,2)">坚果10g</button>
+      </div>
+      <ul class="custom-list" id="customList"></ul>
+    </div>
+  </section>
+
+  <!-- 力量训练 -->
+  <section>
+    <h2 class="sec-title"><span class="em">💪</span>今日力量训练<span class="lbl">居家徒手/小器械</span></h2>
+    <div class="card" id="workout"></div>
+  </section>
+
+  <!-- 历史记录 -->
+  <section>
+    <h2 class="sec-title"><span class="em">📊</span>最近 7 天记录</h2>
+    <div class="card">
+      <table class="hist" id="hist"></table>
+    </div>
+  </section>
+
+  <!-- 动作拆解弹窗 -->
+  <div class="modal-ov" id="modalOv">
+    <div class="modal">
+      <div class="modal-head">
+        <div>
+          <h3 id="mTitle"></h3>
+          <div class="tags">
+            <span class="gear" id="mGear" style="margin-left:0;display:inline-block"></span>
+            <span class="gear" id="mTarget" style="background:rgba(255,255,255,.06);color:var(--muted);display:inline-block"></span>
+          </div>
+        </div>
+        <button class="modal-close" onclick="closeDetail()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="dl">
+          <div class="cell"><div class="k">组数 × 次数</div><div class="v" id="mSets"></div></div>
+          <div class="cell"><div class="k">组间休息</div><div class="v" id="mRest"></div></div>
+        </div>
+        <div class="detail-block"><h4>🧍 起始姿势</h4><p id="mStart"></p></div>
+        <div class="detail-block"><h4>🏃 动作过程</h4><ol id="mMove"></ol></div>
+        <div class="detail-block"><h4>🫁 呼吸</h4><p id="mBreath"></p></div>
+        <div class="detail-block"><h4>⚠️ 常见错误</h4><ul id="mMistakes"></ul></div>
+        <div class="detail-block"><h4>✅ 关键要点</h4><ul id="mTips"></ul></div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-ghost btn-small" onclick="navDetail(-1)">← 上一动作</button>
+        <span class="pg" id="mPg"></span>
+        <button class="btn-primary btn-small" onclick="navDetail(1)">下一动作 →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 设置弹窗 -->
+  <div class="modal-ov" id="setupOv">
+    <div class="modal">
+      <div class="modal-head">
+        <div><h3>设置你的减脂目标</h3></div>
+        <button class="modal-close" onclick="closeSetup()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="setup-grid">
+          <label>性别<select id="sSex"><option>男</option><option>女</option></select></label>
+          <label>身高 cm<input id="sHeight" type="number" placeholder="170"></label>
+          <label>体重 kg<input id="sWeight" type="number" placeholder="70"></label>
+          <label>年龄<input id="sAge" type="number" placeholder="30"></label>
+          <label>活动量<select id="sAct"><option>久坐</option><option>轻度</option><option selected>中度</option><option>高度</option></select></label>
+          <label>减脂节奏<select id="sPace"><option>温和</option><option selected>标准</option><option>激进</option></select></label>
+        </div>
+        <div class="calc-row">
+          <button class="btn-ghost btn-small" onclick="doCompute()">按数据自动计算目标</button>
+          <span class="calc-result" id="calcResult"></span>
+        </div>
+        <div class="setup-grid" style="margin-top:12px">
+          <label>目标热量 kcal<input id="sKcal" type="number"></label>
+          <label>蛋白 g<input id="sProtein" type="number"></label>
+          <label>脂肪 g<input id="sFat" type="number"></label>
+          <label>碳水 g<input id="sCarb" type="number"></label>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <span class="pg" id="setupHint">数据只保存在你的本机浏览器</span>
+        <button class="btn-primary" onclick="saveSetup()">保存并开始</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    数据保存在本地浏览器（localStorage），换设备/清缓存会丢失。<br>
+    食谱与动作参考自各平台热门内容；营养数据为估算值，实际以食材标签为准。图片来自 Unsplash（免费图源，需联网显示）。你的目标与体重在「⚙️ 设置」中填写，只保存在你自己的设备上。
+  </footer>
+</div>
+
+<script>
+/* ===== 目标（由用户设置，默认空） ===== */
+function getTarget(){
+  const p = db.profile;
+  if(p && p.kcal) return { kcal:p.kcal, protein:p.protein||0, fat:p.fat||0, carb:p.carb||0 };
+  return { kcal:0, protein:0, fat:0, carb:0 };
+}
+function getStartWeight(){ return db.profile ? db.profile.weight : 0; }
+function computeTarget(sex, height, weight, age, activity, pace){
+  const bmr = sex==='女' ? 10*weight + 6.25*height - 5*age - 161 : 10*weight + 6.25*height - 5*age + 5;
+  const act = {久坐:1.2, 轻度:1.375, 中度:1.55, 高度:1.725}[activity] || 1.375;
+  const def = {温和:300, 标准:500, 激进:750}[pace] || 500;
+  const tdee = bmr * act;
+  const kcal = Math.max(1200, Math.round(tdee - def));
+  return { bmr:Math.round(bmr), tdee:Math.round(tdee), kcal,
+    protein:Math.round(kcal*0.27/4), fat:Math.round(kcal*0.29/9), carb:Math.round(kcal*0.44/4) };
+}
+
+/* ===== 图片（Unsplash 免费图源） ===== */
+const IMG = {
+  breakfast:'1525351484163-7529414344d8',
+  lunch:'1546069901-ba9599a7e63c',
+  dinner:'1519708227418-c8fd9a32b7a2',
+  snack:'1493770348161-369560ae357d',
+  full:'1571019613454-1cb2f99b2d8b',
+  upper:'1526506118085-60ce8714f8c5',
+  lower:'1581009146145-b5ef050c2e1e',
+  core:'1599058917212-d750089bc07e',
+  rest:'1583454110551-21f2fa2afe61'
+};
+function uimg(id, w){ return `https://images.unsplash.com/photo-${id}?w=${w||800}&q=80&auto=format&fit=crop`; }
+
+/* ===== 减脂餐库（按 2600kcal 目标放大配比） ===== */
+const MEALS = {
+  breakfast: [
+    { name:'燕麦牛奶鸡蛋碗', src:'小红书/抖音热门 · 燕麦+鸡蛋+奶', items:[
+      {name:'燕麦片', amt:'60g', kcal:222, fat:4, pro:8, carb:40},
+      {name:'低脂牛奶', amt:'250ml', kcal:108, fat:3, pro:9, carb:13},
+      {name:'水煮蛋', amt:'3个', kcal:234, fat:16, pro:19, carb:2},
+      {name:'香蕉', amt:'1根', kcal:89, fat:0, pro:1, carb:23},
+      {name:'花生酱', amt:'10g', kcal:59, fat:5, pro:3, carb:2}
+    ]},
+    { name:'全麦鸡胸三明治+豆浆', src:'小红书热门 · 全麦三明治+无糖豆浆', items:[
+      {name:'全麦面包', amt:'2片', kcal:200, fat:3, pro:9, carb:36},
+      {name:'鸡胸肉', amt:'60g', kcal:66, fat:1, pro:14, carb:0},
+      {name:'煎蛋', amt:'1个', kcal:78, fat:5, pro:7, carb:1},
+      {name:'生菜+番茄', amt:'100g', kcal:20, fat:0, pro:1, carb:4},
+      {name:'无糖豆浆', amt:'300ml', kcal:90, fat:4, pro:9, carb:6},
+      {name:'苹果', amt:'150g', kcal:78, fat:0, pro:0, carb:21},
+      {name:'混合坚果', amt:'20g', kcal:120, fat:10, pro:4, carb:4}
+    ]},
+    { name:'玉米+鸡蛋煎饼+牛奶', src:'抖音热门 · 玉米汁+鸡蛋蔬菜煎饼', items:[
+      {name:'甜玉米', amt:'150g', kcal:129, fat:2, pro:5, carb:28},
+      {name:'鸡蛋', amt:'3个', kcal:234, fat:16, pro:19, carb:2},
+      {name:'全麦面粉', amt:'30g', kcal:105, fat:1, pro:4, carb:22},
+      {name:'混合蔬菜', amt:'100g', kcal:20, fat:0, pro:1, carb:4},
+      {name:'低脂牛奶', amt:'250ml', kcal:108, fat:3, pro:9, carb:13}
+    ]},
+    { name:'希腊酸奶碗+鸡蛋+坚果', src:'小红书热门 · 无糖酸奶碗+水煮蛋', items:[
+      {name:'无糖希腊酸奶', amt:'200g', kcal:120, fat:0, pro:20, carb:8},
+      {name:'燕麦片', amt:'30g', kcal:111, fat:2, pro:4, carb:20},
+      {name:'蓝莓', amt:'100g', kcal:57, fat:0, pro:1, carb:15},
+      {name:'水煮蛋', amt:'2个', kcal:156, fat:11, pro:13, carb:1},
+      {name:'混合坚果', amt:'20g', kcal:120, fat:10, pro:4, carb:4},
+      {name:'蜂蜜', amt:'10g', kcal:30, fat:0, pro:0, carb:8}
+    ]}
+  ],
+  lunch: [
+    { name:'鸡胸肉西兰花糙米饭', src:'小红书/抖音最热门 · 鸡胸肉西兰花+糙米饭', items:[
+      {name:'糙米饭(熟)', amt:'350g', kcal:392, fat:3.5, pro:9, carb:81},
+      {name:'鸡胸肉', amt:'220g', kcal:242, fat:2, pro:50, carb:0},
+      {name:'西兰花', amt:'200g', kcal:68, fat:1, pro:6, carb:13},
+      {name:'胡萝卜', amt:'100g', kcal:41, fat:0, pro:1, carb:10},
+      {name:'橄榄油', amt:'10g', kcal:90, fat:10, pro:0, carb:0},
+      {name:'水煮蛋', amt:'1个', kcal:78, fat:5, pro:7, carb:1},
+      {name:'苹果', amt:'100g', kcal:52, fat:0, pro:0, carb:14}
+    ]},
+    { name:'杂粮饭+瘦牛肉炒杂蔬', src:'小红书热门 · 杂蔬炒牛肉+藜麦/杂粮饭', items:[
+      {name:'杂粮饭(熟)', amt:'350g', kcal:402, fat:3.5, pro:11, carb:84},
+      {name:'瘦牛肉', amt:'250g', kcal:312, fat:10, pro:52, carb:0},
+      {name:'青椒洋葱', amt:'150g', kcal:40, fat:0, pro:2, carb:9},
+      {name:'西兰花', amt:'150g', kcal:51, fat:1, pro:4, carb:10},
+      {name:'橄榄油', amt:'10g', kcal:90, fat:10, pro:0, carb:0},
+      {name:'苹果', amt:'100g', kcal:52, fat:0, pro:0, carb:14}
+    ]},
+    { name:'鸡丝荞麦凉面', src:'小红书热门 · 鸡丝荞麦凉面', items:[
+      {name:'荞麦面(生)', amt:'120g', kcal:410, fat:3, pro:16, carb:82},
+      {name:'鸡胸肉', amt:'180g', kcal:198, fat:2, pro:41, carb:0},
+      {name:'黄瓜丝+胡萝卜', amt:'150g', kcal:35, fat:0, pro:2, carb:8},
+      {name:'芝麻酱', amt:'10g', kcal:60, fat:5, pro:2, carb:2},
+      {name:'豆腐', amt:'100g', kcal:82, fat:4, pro:8, carb:3},
+      {name:'水煮蛋', amt:'1个', kcal:78, fat:5, pro:7, carb:1}
+    ]},
+    { name:'番茄龙利鱼+玉米饭', src:'小红书热门 · 番茄龙利鱼+玉米饭', items:[
+      {name:'玉米饭(熟)', amt:'350g', kcal:380, fat:2, pro:9, carb:80},
+      {name:'龙利鱼', amt:'220g', kcal:198, fat:4, pro:40, carb:0},
+      {name:'番茄', amt:'200g', kcal:36, fat:0, pro:2, carb:8},
+      {name:'青菜', amt:'150g', kcal:30, fat:0, pro:4, carb:5},
+      {name:'玉米粒', amt:'100g', kcal:86, fat:1, pro:3, carb:19},
+      {name:'水煮蛋', amt:'1个', kcal:78, fat:5, pro:7, carb:1},
+      {name:'橄榄油', amt:'10g', kcal:90, fat:10, pro:0, carb:0}
+    ]}
+  ],
+  dinner: [
+    { name:'番茄金针菇豆腐汤+玉米', src:'小红书热门 · 番茄金针菇豆腐汤+玉米', items:[
+      {name:'豆腐', amt:'200g', kcal:164, fat:8, pro:16, carb:6},
+      {name:'鸡胸肉', amt:'150g', kcal:165, fat:1.5, pro:34, carb:0},
+      {name:'番茄', amt:'200g', kcal:36, fat:0, pro:2, carb:8},
+      {name:'金针菇', amt:'100g', kcal:26, fat:0, pro:2, carb:5},
+      {name:'鸡蛋', amt:'2个', kcal:156, fat:11, pro:13, carb:1},
+      {name:'玉米', amt:'150g', kcal:129, fat:2, pro:5, carb:28},
+      {name:'山药', amt:'100g', kcal:57, fat:0, pro:2, carb:12},
+      {name:'橄榄油', amt:'5g', kcal:45, fat:5, pro:0, carb:0}
+    ]},
+    { name:'清蒸鳕鱼+白灼蔬菜+紫薯', src:'小红书热门 · 清蒸鳕鱼+白灼生菜+紫薯', items:[
+      {name:'鳕鱼', amt:'250g', kcal:225, fat:5, pro:45, carb:0},
+      {name:'紫薯', amt:'200g', kcal:164, fat:0.4, pro:2.6, carb:36},
+      {name:'西兰花+生菜', amt:'200g', kcal:55, fat:1, pro:5, carb:12},
+      {name:'山药', amt:'150g', kcal:86, fat:0.4, pro:3, carb:18},
+      {name:'玉米', amt:'100g', kcal:86, fat:1, pro:3, carb:19},
+      {name:'鸡蛋', amt:'1个', kcal:78, fat:5, pro:7, carb:1},
+      {name:'橄榄油', amt:'5g', kcal:45, fat:5, pro:0, carb:0}
+    ]},
+    { name:'牛肉炒青菜+少量糙米', src:'小红书热门 · 牛肉炒青菜', items:[
+      {name:'瘦牛肉', amt:'200g', kcal:250, fat:8, pro:42, carb:0},
+      {name:'青菜(油麦菜/生菜)', amt:'250g', kcal:55, fat:1, pro:7, carb:9},
+      {name:'糙米饭(熟)', amt:'150g', kcal:168, fat:1.5, pro:4, carb:35},
+      {name:'山药', amt:'100g', kcal:57, fat:0, pro:2, carb:12},
+      {name:'鸡蛋', amt:'1个', kcal:78, fat:5, pro:7, carb:1},
+      {name:'橄榄油', amt:'8g', kcal:72, fat:8, pro:0, carb:0}
+    ]},
+    { name:'冬瓜虾仁汤+蒸山药', src:'小红书热门 · 冬瓜虾仁汤+蒸山药', items:[
+      {name:'虾仁', amt:'250g', kcal:212, fat:2.5, pro:45, carb:2.5},
+      {name:'冬瓜', amt:'300g', kcal:36, fat:0, pro:1, carb:9},
+      {name:'山药', amt:'200g', kcal:114, fat:0.4, pro:3.8, carb:24},
+      {name:'豆腐', amt:'100g', kcal:82, fat:4, pro:8, carb:3},
+      {name:'玉米', amt:'100g', kcal:86, fat:1, pro:3, carb:19},
+      {name:'鸡蛋', amt:'1个', kcal:78, fat:5, pro:7, carb:1},
+      {name:'橄榄油', amt:'5g', kcal:45, fat:5, pro:0, carb:0}
+    ]}
+  ],
+  snack: [
+    { name:'酸奶+蓝莓+坚果', src:'训练后/下午加餐', items:[
+      {name:'无糖希腊酸奶', amt:'150g', kcal:90, fat:0, pro:15, carb:6},
+      {name:'蓝莓', amt:'50g', kcal:28, fat:0, pro:0.5, carb:7},
+      {name:'混合坚果', amt:'10g', kcal:60, fat:5, pro:2, carb:2}
+    ]},
+    { name:'蛋白奶昔+香蕉', src:'训练后加餐', items:[
+      {name:'乳清蛋白粉', amt:'1勺', kcal:120, fat:2, pro:24, carb:3},
+      {name:'香蕉', amt:'1根', kcal:89, fat:0, pro:1, carb:23}
+    ]},
+    { name:'鸡蛋+牛奶', src:'下午加餐', items:[
+      {name:'水煮蛋', amt:'2个', kcal:156, fat:11, pro:13, carb:1},
+      {name:'低脂牛奶', amt:'200ml', kcal:86, fat:2, pro:7, carb:10}
+    ]}
+  ]
+};
+const MEAL_LABEL = { breakfast:'🥣 早餐', lunch:'🍱 午餐', dinner:'🥗 晚餐', snack:'🍌 加餐' };
+
+/* ===== 训练库 ===== */
+const WORKOUTS = [
+  { id:'rest', name:'休息 / 低强度拉伸', note:'今天让身体恢复。可做 15 分钟全身拉伸或散步 30 分钟，帮助肌肉恢复、放松膝盖和腰。', moves:[] },
+  { id:'full', name:'全身循环 · 新手减脂（徒手）', warmup:'先热身 5 分钟：原地踏步 2 分钟 + 转肩/转髋 + 靠墙静蹲 30 秒。', moves:[
+    {name:'跪姿/标准俯卧撑', sets:'3组', reps:'10-15次', rest:'60秒', gear:'徒手', tip:'核心收紧、身体成直线，下放慢；做不了标准就跪姿或手撑桌面做上斜。'},
+    {name:'自重深蹲', sets:'3组', reps:'15次', rest:'60秒', gear:'徒手', tip:'脚跟踩实、膝盖对准脚尖不过度内扣，下蹲至大腿平行即可，保护膝盖。'},
+    {name:'臀桥', sets:'3组', reps:'15-20次', rest:'45秒', gear:'徒手', tip:'臀部发力顶起，顶峰停顿 1 秒，不要用腰代偿。'},
+    {name:'死虫式', sets:'2组', reps:'每侧12次', rest:'45秒', gear:'徒手', tip:'下背贴地，缓慢交替伸对侧手脚，练核心稳定。'},
+    {name:'平板支撑', sets:'3组', reps:'20-40秒', rest:'45秒', gear:'徒手', tip:'不塌腰不撅臀；坚持不住就改跪姿平板。'}
+  ]},
+  { id:'upper', name:'上肢 + 核心（哑铃/弹力带）', warmup:'热身 5 分钟：开肩绕环 + 空手推举 15 次 + 手臂画圈。', moves:[
+    {name:'哑铃卧推（可躺地面）', sets:'3组', reps:'10-12次', rest:'60秒', gear:'哑铃', tip:'躺在地面或凳上，手肘约 45°，下放至接近触胸再推起。'},
+    {name:'俯身哑铃划船', sets:'3组', reps:'12次', rest:'60秒', gear:'哑铃', tip:'背挺直、肘沿身体向后拉，练背不弓背。'},
+    {name:'哑铃推举（坐姿）', sets:'3组', reps:'10-12次', rest:'60秒', gear:'哑铃', tip:'从肩部向上推起，核心收紧，不要塌腰。'},
+    {name:'弹力带划船 / W夹背', sets:'3组', reps:'12-15次', rest:'45秒', gear:'弹力带', tip:'改善圆肩驼背，肩胛骨向后夹紧。'},
+    {name:'椅子臂屈伸', sets:'3组', reps:'10-12次', rest:'45秒', gear:'徒手', tip:'双手撑稳椅子边缘，屈肘下沉身体，练肱三头肌。'},
+    {name:'仰卧卷腹', sets:'3组', reps:'15-20次', rest:'45秒', gear:'徒手', tip:'用腹肌卷起，不要猛拽脖子。'}
+  ]},
+  { id:'lower', name:'下肢 + 核心（徒手/哑铃）', warmup:'热身 5 分钟：原地高抬腿（轻）+ 髋关节环绕 + 徒手深蹲 10 次。', moves:[
+    {name:'哑铃深蹲', sets:'4组', reps:'12-15次', rest:'60秒', gear:'哑铃', tip:'可双手抱一个哑铃于胸前，动作全程脚跟踩实、膝盖稳定。'},
+    {name:'箭步蹲（原地）', sets:'3组', reps:'每侧10-12次', rest:'60秒', gear:'徒手', tip:'前膝不超过脚尖太多，身体垂直下沉，膝盖不适就减小幅度。'},
+    {name:'臀桥（单腿进阶）', sets:'3组', reps:'15次', rest:'45秒', gear:'徒手', tip:'双脚臀桥稳定后可尝试单腿，臀部持续发力。'},
+    {name:'弹力带侧步走', sets:'3组', reps:'每侧12步', rest:'45秒', gear:'弹力带', tip:'弹力带套膝盖上方，半蹲姿势横向走，激活臀部。'},
+    {name:'仰卧交替抬腿', sets:'3组', reps:'20次', rest:'45秒', gear:'徒手', tip:'下背贴地，慢起慢落，练下腹。'}
+  ]},
+  { id:'core', name:'核心强化 + 有氧（低冲击）', warmup:'热身 5 分钟：原地踏步 3 分钟 + 转体 + 肩关节环绕。', moves:[
+    {name:'平板支撑', sets:'3组', reps:'30-60秒', rest:'45秒', gear:'徒手', tip:'全程收腹，不塌腰；进阶可做平板触肩。'},
+    {name:'俄罗斯转体', sets:'3组', reps:'20次', rest:'45秒', gear:'徒手', tip:'双脚可离地或踩地，用躯干旋转，不要只转手臂。'},
+    {name:'登山者（慢速）', sets:'3组', reps:'30秒', rest:'45秒', gear:'徒手', tip:'慢速交替收膝，保护膝盖，避免冲击。'},
+    {name:'死虫式', sets:'2组', reps:'每侧12次', rest:'45秒', gear:'徒手', tip:'下背始终贴地，动作放慢。'},
+    {name:'快走/爬楼（低冲击有氧）', sets:'1组', reps:'15-30分钟', rest:'—', gear:'有氧', tip:'大体重首选快走或爬楼，心率约 120-140，别跳跃。'}
+  ]}
+];
+
+/* ===== 动作拆解库 ===== */
+const EXERCISE_DETAIL = {
+  '跪姿/标准俯卧撑': {
+    gear:'徒手', target:'胸大肌、肱三头肌、三角肌前束、核心',
+    start:'双手略宽于肩撑地，指尖朝前，身体从头到脚成一条直线，核心与臀部收紧。',
+    move:['屈肘缓慢下降身体，直到胸部接近地面','肘部与躯干约呈 45°，不要外展成 90°','用胸和手臂发力推回起始位置'],
+    breath:'下降时吸气，推起时呼气。',
+    mistakes:['塌腰或撅臀','肘部过度外展成 90°','只做半程就起身'],
+    tips:['力量不足先做跪姿，或手撑桌面/沙发做上斜俯卧撑降低难度','全程核心绷紧，想象身体是一块板']
+  },
+  '自重深蹲': {
+    gear:'徒手', target:'股四头肌、臀部、腘绳肌、核心',
+    start:'双脚与肩同宽、脚尖微外展，抬头挺胸，双手前平举帮助保持平衡。',
+    move:['屈髋屈膝向下蹲，像要坐进椅子','下蹲至大腿平行或略低','脚跟发力站起回到起始'],
+    breath:'下蹲时吸气，站起时呼气。',
+    mistakes:['膝盖向内扣','脚跟离地、重心前移','弓背'],
+    tips:['膝盖始终对准脚尖方向','大体重或平衡差，先扶住桌沿或靠墙半蹲降低难度']
+  },
+  '臀桥': {
+    gear:'徒手', target:'臀大肌、腘绳肌、下背',
+    start:'仰卧屈膝，双脚踩地与髋同宽，手臂自然放身体两侧。',
+    move:['臀部发力向上顶起，直到肩—髋—膝成一条直线','顶峰停顿 1 秒，主动夹紧臀部','缓慢下放回到起始'],
+    breath:'顶起时呼气，下放时吸气。',
+    mistakes:['用腰部反弓代偿','顶起幅度不足','下巴上扬、颈部紧张'],
+    tips:['顶峰主动夹臀','下巴微收，力从臀部来而不是腰']
+  },
+  '死虫式': {
+    gear:'徒手', target:'腹横肌、核心稳定、下背',
+    start:'仰卧，双臂伸直指向天花板，双腿屈髋屈膝抬起约 90°。',
+    move:['缓慢伸直对侧的手臂和腿，接近地面但不落地','回到起始位置','换另一侧交替进行'],
+    breath:'伸出去时呼气，收回时吸气。',
+    mistakes:['下背离开地面','动作太快','憋气'],
+    tips:['全程下背贴地','越慢越有效，控制大于次数']
+  },
+  '平板支撑': {
+    gear:'徒手', target:'核心、肩、背',
+    start:'前臂撑地，肘在肩正下方，脚尖撑地，身体从头到脚成一条直线。',
+    move:['保持身体一条直线静止','核心持续收紧','坚持到目标时长'],
+    breath:'自然呼吸，不要憋气。',
+    mistakes:['塌腰','臀部抬得过高','头向前伸'],
+    tips:['坚持不住就改跪姿平板','从 20 秒起步，逐步加时间']
+  },
+  '哑铃卧推（可躺地面）': {
+    gear:'哑铃', target:'胸大肌、肱三头肌、三角肌前束',
+    start:'仰卧在地面或凳上，双手各持一个哑铃于胸部两侧，手肘约呈 45°。',
+    move:['向上推起哑铃，直到手臂伸直但不锁死','缓慢下放，直到手肘接近地面或凳面','再推起，保持节奏'],
+    breath:'推起时呼气，下放时吸气。',
+    mistakes:['肘部外展过大压肩','下放过快借力弹起','手腕向后折'],
+    tips:['躺地面做时肘落地即停，保护肩关节','手腕保持中立，不要塌']
+  },
+  '俯身哑铃划船': {
+    gear:'哑铃', target:'背阔肌、菱形肌、肱二头肌',
+    start:'微屈膝俯身，背部挺直，双手持哑铃自然下垂。',
+    move:['手肘沿身体向后上方拉，直到哑铃贴近腹部','顶峰时夹紧肩胛骨','缓慢下放还原'],
+    breath:'拉起时呼气，下放时吸气。',
+    mistakes:['弓背','耸肩','用惯性甩动'],
+    tips:['背像桌面一样平','想象用手肘去撞身后，而不是用手拉']
+  },
+  '哑铃推举（坐姿）': {
+    gear:'哑铃', target:'三角肌、肱三头肌',
+    start:'坐姿挺直，双手持哑铃于肩部两侧，掌心朝前。',
+    move:['向上推起哑铃，直到头顶上方手臂伸直','缓慢下放回到肩部两侧','重复'],
+    breath:'推起时呼气，下放时吸气。',
+    mistakes:['塌腰、身体后仰','下放过快','耸肩'],
+    tips:['核心收紧、下巴微收，避免腰部代偿','全程肩胛骨稳定']
+  },
+  '弹力带划船 / W夹背': {
+    gear:'弹力带', target:'菱形肌、背阔肌、三角肌后束',
+    start:'坐姿或站姿，弹力带固定在前方或用双脚踩住，双手握带、手臂前伸。',
+    move:['屈肘向后拉，肩胛骨向后夹紧','感受背部收缩后缓慢还原','重复'],
+    breath:'后拉时呼气，还原时吸气。',
+    mistakes:['耸肩','只用手臂发力','还原太快失去控制'],
+    tips:['重点是肩胛骨夹紧','对改善圆肩驼背效果很好']
+  },
+  '椅子臂屈伸': {
+    gear:'徒手', target:'肱三头肌、三角肌前束',
+    start:'背对稳固的椅子，双手撑住椅子边缘，臀部离开椅面，双腿前伸。',
+    move:['屈肘下沉身体，直到手肘约呈 90°','用肱三头肌发力撑起','重复'],
+    breath:'下沉时吸气，撑起时呼气。',
+    mistakes:['肩部耸起','下沉过深压迫肩','用腿借力'],
+    tips:['椅子一定要靠墙放稳','幅度以肩不痛为准，宁可浅一点']
+  },
+  '仰卧卷腹': {
+    gear:'徒手', target:'腹直肌',
+    start:'仰卧屈膝，双手轻扶头两侧或交叉在胸前。',
+    move:['用腹部发力卷起上背部，肩胛离地即可','缓慢下放回到起始','重复'],
+    breath:'卷起时呼气，下放时吸气。',
+    mistakes:['猛拽脖子','用惯性甩','幅度过大、整个背离地'],
+    tips:['眼睛看天花板，想象肋骨向骨盆卷','脖子保持放松']
+  },
+  '哑铃深蹲': {
+    gear:'哑铃', target:'股四头肌、臀部、腘绳肌、核心',
+    start:'双手抱一个哑铃于胸前（高脚杯式），双脚与肩同宽。',
+    move:['屈髋屈膝下蹲，直到大腿平行地面','脚跟发力站起','重复'],
+    breath:'下蹲时吸气，站起时呼气。',
+    mistakes:['膝盖内扣','上身前倾过多','脚跟离地'],
+    tips:['哑铃始终贴近胸口','重心放在脚掌中部']
+  },
+  '箭步蹲（原地）': {
+    gear:'徒手', target:'股四头肌、臀部、腘绳肌',
+    start:'前后分腿站立，身体垂直，双手叉腰。',
+    move:['垂直下蹲，直到后膝接近地面、前膝约 90°','前脚脚跟发力站起','重复后换另一侧'],
+    breath:'下蹲时吸气，站起时呼气。',
+    mistakes:['前膝过度前移','身体左右晃动','幅度过深压膝盖'],
+    tips:['膝盖不适就减小幅度','保持上身垂直，不往前扑']
+  },
+  '臀桥（单腿进阶）': {
+    gear:'徒手', target:'臀大肌、腘绳肌',
+    start:'仰卧屈膝，一脚踩地，另一腿伸直抬起。',
+    move:['支撑腿的臀部发力向上顶起','保持骨盆水平、不歪斜','缓慢下放'],
+    breath:'顶起时呼气，下放时吸气。',
+    mistakes:['骨盆歪斜','用腰代偿','顶起幅度不足'],
+    tips:['双脚臀桥熟练后再进阶单腿','保持两侧骨盆一样高']
+  },
+  '弹力带侧步走': {
+    gear:'弹力带', target:'臀中肌、臀部外侧',
+    start:'弹力带套在膝盖上方，半蹲姿势，身体微微前倾。',
+    move:['保持半蹲，横向迈出一步','另一脚跟进，但双腿不并拢','交替向一个方向移动，再换方向'],
+    breath:'自然呼吸，全程保持张力。',
+    mistakes:['站得太高、失去弹力带张力','步子太大','膝盖内扣'],
+    tips:['始终保持弹力带有张力','膝盖对准脚尖方向']
+  },
+  '仰卧交替抬腿': {
+    gear:'徒手', target:'下腹、核心',
+    start:'仰卧，双腿伸直抬起，下背贴地，双手放身体两侧。',
+    move:['缓慢下放一条腿，接近地面但不落地','再抬起，换另一条腿','交替进行'],
+    breath:'下放时吸气，抬起时呼气。',
+    mistakes:['下背拱起离地','动作过快','憋气'],
+    tips:['腰酸就改成屈膝做，减小难度','下背始终贴地']
+  },
+  '俄罗斯转体': {
+    gear:'徒手', target:'腹斜肌、核心',
+    start:'坐姿屈膝，身体后仰约 45°，双脚可踩地或离地，双手在胸前合十。',
+    move:['用躯干向左侧旋转，双手随之移动','回到中间，再向右侧旋转','交替进行'],
+    breath:'转体时呼气，回中时吸气。',
+    mistakes:['只转手臂不转躯干','弓背','幅度太大失去控制'],
+    tips:['转的是胸廓，不是手','眼睛跟着手走']
+  },
+  '登山者（慢速）': {
+    gear:'徒手', target:'核心、肩、心肺',
+    start:'俯撑姿势，双手在肩正下方，身体成一条直线。',
+    move:['缓慢将一侧膝盖收向胸部','还原，再换另一侧','控制节奏，不追求速度'],
+    breath:'收膝时呼气，还原时吸气。',
+    mistakes:['臀部抬得过高','动作过快冲击膝盖','核心放松、身体乱晃'],
+    tips:['慢速控制，保护膝盖','身体保持稳定，不左右摇摆']
+  },
+  '快走/爬楼（低冲击有氧）': {
+    gear:'有氧', target:'心肺、全身',
+    start:'选择平坦地面或楼梯，穿缓冲好的鞋。',
+    move:['保持「能说话但微喘」的强度快走 15-30 分钟','或爬楼梯替代','循序渐进延长时间'],
+    breath:'自然有节奏地呼吸。',
+    mistakes:['速度过快、上气不接下气','大体重直接跑跳','忽略膝盖的不适信号'],
+    tips:['心率保持在约 120-140','大体重首选快走/爬楼，不要跳跃']
+  }
+};
+
+/* ===== 状态 ===== */
+const KEY='leanMusclePlan_v1';
+let db = load();
+function todayKey(){ const d=new Date(); return dk(d); }
+function dk(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function load(){
+  try{ const s=localStorage.getItem(KEY); if(s) return JSON.parse(s); }catch(e){}
+  return { days:{} };
+}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(db)); }catch(e){} }
+function day(date){
+  const k = date || todayKey();
+  if(!db.days[k]) db.days[k] = { meals:{breakfast:0,lunch:0,dinner:0,snack:0}, checked:{}, custom:[], workout:{done:false, ex:[]} };
+  return db.days[k];
+}
+
+/* ===== 工具 ===== */
+function mealTotal(mealKey, idx){
+  const items = MEALS[mealKey][idx].items;
+  let t={kcal:0,fat:0,pro:0,carb:0};
+  items.forEach(i=>{ t.kcal+=i.kcal; t.fat+=i.fat; t.pro+=i.pro; t.carb+=i.carb; });
+  return t;
+}
+function round1(n){ return Math.round(n*10)/10; }
+function workoutOf(date){
+  const d = new Date(date); const wd = d.getDay(); // 0=Sun
+  const map = {0:'rest',1:'full',2:'upper',3:'lower',4:'core',5:'full',6:'upper'};
+  return WORKOUTS.find(w=>w.id===map[wd]) || WORKOUTS[0];
+}
+function latestWeight(){
+  const start = getStartWeight() || 0;
+  let w = start;
+  Object.keys(db.days).sort().forEach(k=>{ const v=db.days[k].weight; if(v!=null && !isNaN(+v)){ w=+v; } });
+  return { latest:w, lost: start>0 ? Math.max(0, round1(start - w)) : 0 };
+}
+
+/* ===== 渲染 ===== */
+function render(){
+  const d = day(todayKey());
+  document.getElementById('streakCount').textContent = calcStreak();
+  renderHero(d);
+  renderTargets(d);
+  renderWeight();
+  renderMeals(d);
+  renderCustom(d);
+  renderWorkout(d);
+  renderHistory();
+}
+function renderHero(d){
+  const t = consumed(d); const g = getTarget();
+  document.getElementById('hStreak').textContent = calcStreak();
+  document.getElementById('hLost').textContent = latestWeight().lost;
+  document.getElementById('hKcal').textContent = round1(t.kcal);
+  document.getElementById('hPro').textContent = round1(t.pro);
+  document.getElementById('hKcalLabel').textContent = '今日热量 / ' + (g.kcal||'—');
+  document.getElementById('hProLabel').textContent = '蛋白 / ' + (g.protein||'—') + 'g';
+}
+function calcStreak(){
+  let n=0; const today=new Date();
+  for(let i=0;i<365;i++){
+    const dt=new Date(today); dt.setDate(today.getDate()-i);
+    const k=dk(dt); const dy=db.days[k];
+    const active = dy && (Object.values(dy.checked||{}).some(Boolean) || (dy.custom||[]).length>0 || (dy.workout&&dy.workout.done));
+    if(active) n++; else if(i===0) continue; else break;
+  }
+  return n;
+}
+function consumed(d){
+  let t={kcal:0,fat:0,pro:0,carb:0};
+  ['breakfast','lunch','dinner','snack'].forEach(mk=>{
+    if(d.checked && d.checked[mk]){
+      const tot = mealTotal(mk, d.meals[mk]||0);
+      t.kcal+=tot.kcal; t.fat+=tot.fat; t.pro+=tot.pro; t.carb+=tot.carb;
+    }
+  });
+  (d.custom||[]).forEach(c=>{ t.kcal+=+c.kcal||0; t.fat+=+c.fat||0; t.pro+=+c.pro||0; t.carb+=+c.carb||0; });
+  return t;
+}
+function renderTargets(d){
+  const t = consumed(d); const g = getTarget();
+  setBar('Kcal', t.kcal, g.kcal, 'tKcal');
+  setBar('Protein', t.pro, g.protein, 'tProtein');
+  setBar('Fat', t.fat, g.fat, 'tFat');
+  setBar('Carb', t.carb, g.carb, 'tCarb');
+}
+function setBar(key, val, target, labelId){
+  const v = document.getElementById('v'+key), b = document.getElementById('b'+key), lab = document.getElementById(labelId);
+  if(v) v.textContent = round1(val);
+  if(lab) lab.textContent = '/ ' + (target>0?target:'—');
+  if(b) b.style.width = (target>0 ? Math.min(100, Math.round(val/target*100)) : 0)+'%';
+}
+function renderWeight(){
+  const w = latestWeight(); const start = getStartWeight();
+  document.getElementById('wStart').textContent = '起始 ' + (start>0?start+'kg':'—');
+  document.getElementById('wLatest').textContent = start>0 ? w.latest.toFixed(1) : '—';
+  document.getElementById('wLost').textContent = start>0 ? w.lost.toFixed(1) : '—';
+}
+function renderMeals(d){
+  const el = document.getElementById('meals');
+  el.innerHTML = '';
+  ['breakfast','lunch','dinner','snack'].forEach(mk=>{
+    const list = MEALS[mk];
+    const idx = d.meals[mk] ?? 0;
+    const combo = list[idx];
+    const tot = mealTotal(mk, idx);
+    const checked = !!(d.checked && d.checked[mk]);
+    const card = document.createElement('div');
+    card.className='card';
+    card.innerHTML = `
+      <div class="meal-hero">
+        <img src="${uimg(IMG[mk])}" alt="" onerror="this.remove()">
+        <div class="ov"></div>
+        <div class="txt">${MEAL_LABEL[mk]}
+          ${checked?'<span class="meal-tag">已打卡</span>':'<span class="meal-tag ghost">待打卡</span>'}
+        </div>
+      </div>
+      <div class="meal-body">
+        <div class="meal-top">
+          <select onchange="swapMeal('${mk}', this.value)">
+            ${list.map((c,i)=>`<option value="${i}" ${i===idx?'selected':''}>${c.name}</option>`).join('')}
+          </select>
+        </div>
+        <div class="src">${combo.src}</div>
+        <table>
+          <tr><th>食材</th><th>份量</th><th>热量</th><th>脂肪g</th><th>蛋白g</th><th>碳水g</th></tr>
+          ${combo.items.map(i=>`<tr><td>${i.name}</td><td>${i.amt}</td><td>${i.kcal}</td><td>${round1(i.fat)}</td><td>${round1(i.pro)}</td><td>${round1(i.carb)}</td></tr>`).join('')}
+          <tr class="total"><td>合计</td><td></td><td>${round1(tot.kcal)}</td><td>${round1(tot.fat)}</td><td>${round1(tot.pro)}</td><td>${round1(tot.carb)}</td></tr>
+        </table>
+        <div class="meal-foot">
+          <div class="macro-pills">
+            <span class="pill p-kcal">${round1(tot.kcal)} kcal</span>
+            <span class="pill p-protein">蛋白 ${round1(tot.pro)}g</span>
+            <span class="pill p-fat">脂肪 ${round1(tot.fat)}g</span>
+            <span class="pill p-carb">碳水 ${round1(tot.carb)}g</span>
+          </div>
+          <button class="btn-primary ${checked?'checked':''}" onclick="toggleMeal('${mk}')">${checked?'✅ 已打卡，点击撤销':'打卡 ✓'}</button>
+        </div>
+      </div>`;
+    el.appendChild(card);
+  });
+}
+function renderCustom(d){
+  const el = document.getElementById('customList');
+  el.innerHTML='';
+  const list = d.custom||[];
+  if(!list.length){ el.innerHTML='<li style="color:var(--muted)">还没有额外记录。</li>'; return; }
+  list.forEach((c,i)=>{
+    const li=document.createElement('li');
+    li.innerHTML=`<span>${c.name} · ${c.kcal}kcal · 蛋白${c.pro}g / 脂肪${c.fat}g / 碳水${c.carb}g <small style="color:var(--muted2)">(${c.meal||''})</small></span>
+      <span class="del" onclick="delCustom(${i})">✕</span>`;
+    el.appendChild(li);
+  });
+}
+function renderWorkout(d){
+  const w = workoutOf(todayKey());
+  const el = document.getElementById('workout');
+  const ex = d.workout.ex||[];
+  const allDone = w.moves.length>0 && w.moves.every((m,i)=>ex[i]);
+  const done = d.workout.done || allDone;
+  if(w.id==='rest'){
+    el.innerHTML = `
+      <div class="wo-hero"><img src="${uimg(IMG.rest)}" alt="" onerror="this.remove()"><div class="ov"></div>
+        <div class="txt">🧘 ${w.name}<small>恢复也是变强的一部分</small></div></div>
+      <p style="color:var(--muted)">${w.note}</p>
+      <button class="btn-primary ${done?'checked':''}" onclick="toggleWorkout()">${done?'✅ 已打卡，点击撤销':'今日休息打卡 ✓'}</button>`;
+    return;
+  }
+  el.innerHTML = `
+    <div class="wo-hero"><img src="${uimg(IMG[w.id])}" alt="" onerror="this.remove()"><div class="ov"></div>
+      <div class="txt">${w.name}<small>居家徒手 / 哑铃 / 弹力带</small></div></div>
+    ${w.warmup?`<div class="warmup">🔥 <b>热身</b>：${w.warmup}</div>`:''}
+    <div class="wo-moves">
+      ${w.moves.map((m,i)=>`
+        <div class="wo-move ${ex[i]?'done':''}">
+          <input type="checkbox" ${ex[i]?'checked':''} onchange="toggleEx(${i}, this.checked)">
+          <div class="body">
+            <button class="wo-title" onclick="openDetail(${i})">${m.name}<span class="gear">${m.gear}</span><span class="arrow">拆解 →</span></button>
+            <div class="meta">${m.sets} × ${m.reps} · 组间休息 ${m.rest}</div>
+            <div class="tip">💡 ${m.tip}</div>
+          </div>
+        </div>`).join('')}
+    </div>
+    <div style="margin-top:14px;text-align:right">
+      <button class="btn-primary ${done?'checked':''}" onclick="toggleWorkout()">${done?'✅ 训练完成':'完成训练打卡 ✓'}</button>
+    </div>`;
+}
+function renderHistory(){
+  const el = document.getElementById('hist');
+  const rows=[];
+  for(let i=0;i<7;i++){
+    const dt=new Date(); dt.setDate(dt.getDate()-i);
+    const k=dk(dt); const dy=db.days[k]||{checked:{},custom:[],workout:{}};
+    const t = consumed(dy);
+    const mealCount = ['breakfast','lunch','dinner'].filter(mk=>dy.checked&&dy.checked[mk]).length;
+    const wo = (dy.workout&&dy.workout.done);
+    const label = i===0?'今天': (i===1?'昨天': (dt.getMonth()+1)+'/'+dt.getDate());
+    rows.push(`<tr>
+      <td>${label}</td>
+      <td>${round1(t.kcal)}</td>
+      <td>${round1(t.pro)}</td>
+      <td>${mealCount}/3</td>
+      <td>${wo?'<span class="dot-ok">✓</span>':'<span class="dot-no">—</span>'}</td>
+    </tr>`);
+  }
+  el.innerHTML = `<tr><th>日期</th><th>热量 kcal</th><th>蛋白 g</th><th>正餐打卡</th><th>训练</th></tr>` + rows.join('');
+}
+
+/* ===== 交互 ===== */
+function swapMeal(mk, idx){ const d=day(); d.meals[mk]=+idx; save(); render(); }
+function toggleMeal(mk){ const d=day(); d.checked[mk]=!d.checked[mk]; save(); render(); }
+function toggleWorkout(){ const d=day(); d.workout.done=!d.workout.done; save(); render(); }
+function toggleEx(i, on){ const d=day(); if(!d.workout.ex) d.workout.ex=[]; d.workout.ex[i]=on;
+  const w=workoutOf(todayKey());
+  d.workout.done = w.moves.every((m,idx)=> d.workout.ex[idx]); save(); render(); }
+function logWeight(){
+  const v = +document.getElementById('wInput').value;
+  if(!v || v<=0 || v>500){ alert('请输入合理的体重(kg)'); return; }
+  const d=day(); d.weight=v; save(); document.getElementById('wInput').value=''; render();
+}
+function addCustom(){
+  const name=document.getElementById('fName').value.trim();
+  const kcal=+document.getElementById('fKcal').value;
+  const pro=+document.getElementById('fPro').value||0;
+  const fat=+document.getElementById('fFat').value||0;
+  const carb=+document.getElementById('fCarb').value||0;
+  const meal=document.getElementById('fMeal').value;
+  if(!name || !kcal){ alert('请至少填写食物名和热量'); return; }
+  const d=day(); d.custom.push({name,kcal,pro,fat,carb,meal}); save();
+  ['fName','fKcal','fPro','fFat','fCarb'].forEach(id=>document.getElementById(id).value='');
+  render();
+}
+function quickAdd(name,kcal,pro,fat,carb){
+  const d=day(); d.custom.push({name,kcal,pro,fat,carb,meal:'加餐'}); save(); render();
+}
+function delCustom(i){ const d=day(); d.custom.splice(i,1); save(); render(); }
+
+/* ===== 动作拆解弹窗 ===== */
+let curIdx = 0;
+function openDetail(i){
+  const w = workoutOf(todayKey());
+  if(!w || !w.moves.length) return;
+  curIdx = i; renderModal(w);
+  document.getElementById('modalOv').classList.add('open');
+}
+function closeDetail(){ document.getElementById('modalOv').classList.remove('open'); }
+function navDetail(dir){
+  const w = workoutOf(todayKey());
+  if(!w || !w.moves.length) return;
+  curIdx = (curIdx + dir + w.moves.length) % w.moves.length;
+  renderModal(w);
+}
+function renderModal(w){
+  const m = w.moves[curIdx];
+  const d = EXERCISE_DETAIL[m.name] || {};
+  document.getElementById('mTitle').textContent = m.name;
+  document.getElementById('mGear').textContent = m.gear;
+  document.getElementById('mTarget').textContent = d.target || '全身';
+  document.getElementById('mSets').textContent = m.sets + ' × ' + m.reps;
+  document.getElementById('mRest').textContent = m.rest;
+  document.getElementById('mStart').textContent = d.start || '';
+  document.getElementById('mMove').innerHTML = (d.move||[]).map(s=>`<li>${s}</li>`).join('');
+  document.getElementById('mBreath').textContent = d.breath || '';
+  document.getElementById('mMistakes').innerHTML = (d.mistakes||[]).map(s=>`<li class="err">${s}</li>`).join('');
+  document.getElementById('mTips').innerHTML = (d.tips||[]).map(s=>`<li class="ok">${s}</li>`).join('');
+  document.getElementById('mPg').textContent = (curIdx+1) + ' / ' + w.moves.length;
+}
+document.getElementById('modalOv').addEventListener('click', e=>{ if(e.target.id==='modalOv') closeDetail(); });
+document.addEventListener('keydown', e=>{
+  if(!document.getElementById('modalOv').classList.contains('open')) return;
+  if(e.key==='Escape') closeDetail();
+  else if(e.key==='ArrowRight') navDetail(1);
+  else if(e.key==='ArrowLeft') navDetail(-1);
+});
+
+/* ===== 设置 ===== */
+function elv(id){ return document.getElementById(id).value; }
+function setVal(id, v){ document.getElementById(id).value = v; }
+function openSetup(){
+  const p = db.profile;
+  if(p){ setVal('sSex', p.sex||'男'); setVal('sHeight', p.height||''); setVal('sWeight', p.weight||''); setVal('sAge', p.age||''); setVal('sAct', p.activity||'中度'); setVal('sPace', p.pace||'标准'); setVal('sKcal', p.kcal||''); setVal('sProtein', p.protein||''); setVal('sFat', p.fat||''); setVal('sCarb', p.carb||''); }
+  document.getElementById('setupOv').classList.add('open');
+}
+function closeSetup(){ document.getElementById('setupOv').classList.remove('open'); }
+function doCompute(){
+  const height=+elv('sHeight'), weight=+elv('sWeight'), age=+elv('sAge');
+  if(!height||!weight||!age){ document.getElementById('calcResult').textContent='请先填身高/体重/年龄'; return; }
+  const t = computeTarget(elv('sSex'), height, weight, age, elv('sAct'), elv('sPace'));
+  setVal('sKcal', t.kcal); setVal('sProtein', t.protein); setVal('sFat', t.fat); setVal('sCarb', t.carb);
+  document.getElementById('calcResult').textContent = 'BMR '+t.bmr+' kcal · 日常消耗 '+t.tdee+' · 建议 '+t.kcal+' kcal';
+}
+function saveSetup(){
+  const kcal=+elv('sKcal'), weight=+elv('sWeight'), height=+elv('sHeight'), age=+elv('sAge');
+  if(!kcal || !weight){ document.getElementById('setupHint').textContent='请至少填体重和目标热量'; return; }
+  db.profile = { sex:elv('sSex'), height, weight, age, activity:elv('sAct'), pace:elv('sPace'),
+    kcal, protein:+elv('sProtein')||0, fat:+elv('sFat')||0, carb:+elv('sCarb')||0 };
+  save(); closeSetup(); render();
+}
+document.getElementById('setupOv').addEventListener('click', e=>{ if(e.target.id==='setupOv' && db.profile) closeSetup(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && db.profile) closeSetup(); });
+
+render();
+if(!db.profile) openSetup();
+</script>
+</body>
+</html>
