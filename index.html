@@ -211,6 +211,7 @@
   <div class="bar">
     <h2>🔥 今日作战</h2>
     <div style="display:flex;gap:8px;align-items:center">
+      <button class="btn-ghost btn-small" id="acctBtn" onclick="acctClick()">☁️ 登录同步</button>
       <button class="btn-ghost btn-small" onclick="openSetup()">⚙️ 设置</button>
       <div class="streak">🔥 连续打卡 <span class="n" id="streakCount">0</span> 天</div>
     </div>
@@ -356,15 +357,37 @@
         </div>
       </div>
       <div class="modal-foot">
-        <span class="pg" id="setupHint">数据只保存在你的本机浏览器</span>
+        <span class="pg" id="setupHint">登录后自动同步到云端</span>
         <button class="btn-primary" onclick="saveSetup()">保存并开始</button>
       </div>
     </div>
   </div>
 
+  <!-- 登录弹窗 -->
+  <div class="modal-ov" id="loginOv">
+    <div class="modal">
+      <div class="modal-head">
+        <div><h3>登录同步账号</h3></div>
+        <button class="modal-close" onclick="closeLogin()">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:13px;color:var(--muted);margin:0 0 12px">登录后，打卡 / 体重 / 饮食记录自动同步到云端，手机和电脑数据互通。</p>
+        <div class="setup-grid">
+          <label>邮箱<input id="lEmail" type="email" placeholder="you@example.com"></label>
+          <label>密码<input id="lPass" type="password" placeholder="至少 6 位"></label>
+        </div>
+        <div class="calc-row">
+          <button class="btn-primary" id="lBtn" onclick="doLogin()">登录</button>
+          <button class="btn-ghost" id="lSwitch" onclick="switchAuth()">没有账号？注册</button>
+          <span class="calc-result" id="loginHint"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <footer>
-    数据保存在本地浏览器（localStorage），换设备/清缓存会丢失。<br>
-    食谱与动作参考自各平台热门内容；营养数据为估算值，实际以食材标签为准。图片来自 Unsplash（免费图源，需联网显示）。你的目标与体重在「⚙️ 设置」中填写，只保存在你自己的设备上。
+    未登录时数据只保存在本地浏览器；登录后自动同步到云端，手机/电脑数据互通。<br>
+    食谱与动作参考自各平台热门内容；营养数据为估算值，实际以食材标签为准。图片来自 Unsplash（免费图源，需联网显示）。你的目标与体重在「⚙️ 设置」中填写。
   </footer>
 </div>
 
@@ -719,6 +742,10 @@ const EXERCISE_DETAIL = {
 
 /* ===== 状态 ===== */
 const KEY='leanMusclePlan_v1';
+/* ===== Supabase 云同步配置（部署前填入真实值） ===== */
+const SUPABASE_URL = 'https://mrwlpsytnroxefhaadqf.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yd2xwc3l0bnJveGVmaGFhZHFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MDQ1MjYsImV4cCI6MjEwOTE4MDUyNn0.3r8kxmN9CWMJhAkX7TahISivUXlvZjXK28r5JHqnT_c';
+let SUPABASE = null;
 let db = load();
 function todayKey(){ const d=new Date(); return dk(d); }
 function dk(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -726,7 +753,7 @@ function load(){
   try{ const s=localStorage.getItem(KEY); if(s) return JSON.parse(s); }catch(e){}
   return { days:{} };
 }
-function save(){ try{ localStorage.setItem(KEY, JSON.stringify(db)); }catch(e){} }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(db)); }catch(e){} pushToday(); }
 function day(date){
   const k = date || todayKey();
   if(!db.days[k]) db.days[k] = { meals:{breakfast:0,lunch:0,dinner:0,snack:0}, checked:{}, custom:[], workout:{done:false, ex:[]} };
@@ -1012,13 +1039,126 @@ function saveSetup(){
   if(!kcal || !weight){ document.getElementById('setupHint').textContent='请至少填体重和目标热量'; return; }
   db.profile = { sex:elv('sSex'), height, weight, age, activity:elv('sAct'), pace:elv('sPace'),
     kcal, protein:+elv('sProtein')||0, fat:+elv('sFat')||0, carb:+elv('sCarb')||0 };
-  save(); closeSetup(); render();
+  save(); pushProfile(); closeSetup(); render();
 }
 document.getElementById('setupOv').addEventListener('click', e=>{ if(e.target.id==='setupOv' && db.profile) closeSetup(); });
 document.addEventListener('keydown', e=>{ if(e.key==='Escape' && db.profile) closeSetup(); });
 
+/* ===== 云同步 + 登录 ===== */
+function loadSupabase(cb){
+  if(window.supabase){ cb(); return; }
+  const s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+  s.onload = cb; s.onerror = cb;
+  document.head.appendChild(s);
+}
+async function initSupabase(){
+  if(!window.supabase) return;
+  SUPABASE = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  updateAuthUI();
+  const u = (await SUPABASE.auth.getUser()).data.user;
+  if(u){ await syncPull(); render(); }
+}
+let authMode = 'login';
+function openLogin(){ document.getElementById('loginOv').classList.add('open'); }
+function closeLogin(){ document.getElementById('loginOv').classList.remove('open'); }
+function switchAuth(){
+  authMode = authMode==='login' ? 'signup' : 'login';
+  document.getElementById('lBtn').textContent = authMode==='login' ? '登录' : '注册';
+  document.getElementById('lSwitch').textContent = authMode==='login' ? '没有账号？注册' : '已有账号？去登录';
+  document.getElementById('loginHint').textContent = '';
+}
+async function acctClick(){
+  if(!SUPABASE){ openLogin(); return; }
+  const u = (await SUPABASE.auth.getUser()).data.user;
+  if(u){
+    if(confirm('退出登录？本机数据会清空，云端已保存，重新登录会自动拉回。')){
+      await SUPABASE.auth.signOut();
+      db = { days:{} };
+      try{ localStorage.removeItem(KEY); }catch(e){}
+      render(); updateAuthUI();
+    }
+  } else { openLogin(); }
+}
+async function doLogin(){
+  if(!SUPABASE){ openLogin(); return; }
+  const email = document.getElementById('lEmail').value.trim();
+  const pass = document.getElementById('lPass').value;
+  const hint = document.getElementById('loginHint');
+  if(!email || pass.length < 6){ hint.textContent = '请输入邮箱和至少 6 位密码'; return; }
+  hint.textContent = '请稍候...';
+  let res;
+  if(authMode === 'signup'){
+    res = await SUPABASE.auth.signUp({ email:email, password:pass });
+    if(res.data && res.data.user && !res.data.session){ hint.textContent = '注册成功！请到邮箱点击确认链接，再回来登录。'; return; }
+  } else {
+    res = await SUPABASE.auth.signInWithPassword({ email:email, password:pass });
+  }
+  if(res.error){ hint.textContent = '出错：' + (res.error.message || '未知错误'); return; }
+  closeLogin();
+  await pushNewOnly();
+  await syncPull();
+  render(); updateAuthUI();
+}
+async function updateAuthUI(){
+  const btn = document.getElementById('acctBtn');
+  if(!btn) return;
+  if(!SUPABASE){ btn.textContent = '☁️ 未配置'; return; }
+  const u = (await SUPABASE.auth.getUser()).data.user;
+  btn.textContent = u ? ('☁️ ' + (u.email || '已登录')) : '☁️ 登录同步';
+}
+async function pushToday(){
+  if(!SUPABASE) return;
+  const u = (await SUPABASE.auth.getUser()).data.user;
+  if(!u) return;
+  const k = todayKey(); const d = db.days[k];
+  if(!d) return;
+  const { error } = await SUPABASE.from('days').upsert(
+    { user_id:u.id, date:k, data:d, updated_at:new Date().toISOString() },
+    { onConflict:'user_id,date' });
+  if(error) console.warn('sync:day', error.message);
+}
+async function pushProfile(){
+  if(!SUPABASE || !db.profile) return;
+  const u = (await SUPABASE.auth.getUser()).data.user;
+  if(!u) return;
+  const { error } = await SUPABASE.from('profile').upsert(
+    { id:u.id, data:db.profile, updated_at:new Date().toISOString() },
+    { onConflict:'id' });
+  if(error) console.warn('sync:profile', error.message);
+}
+async function pushNewOnly(){
+  if(!SUPABASE) return;
+  const u = (await SUPABASE.auth.getUser()).data.user;
+  if(!u) return;
+  const { data: have } = await SUPABASE.from('days').select('date').eq('user_id', u.id);
+  const haveSet = new Set((have||[]).map(r=>r.date));
+  const rows = Object.keys(db.days).filter(k=>!haveSet.has(k))
+    .map(k=>({ user_id:u.id, date:k, data:db.days[k], updated_at:new Date().toISOString() }));
+  if(rows.length){ const { error } = await SUPABASE.from('days').upsert(rows, { onConflict:'user_id,date' }); if(error) console.warn('sync:pushnew', error.message); }
+  if(db.profile) await pushProfile();
+}
+async function syncPull(){
+  if(!SUPABASE) return;
+  const u = (await SUPABASE.auth.getUser()).data.user;
+  if(!u) return;
+  const pr = await SUPABASE.from('profile').select('data').eq('id', u.id).maybeSingle();
+  if(pr.data && pr.data.data) db.profile = pr.data.data;
+  const since = dk(new Date(Date.now() - 400*86400000));
+  const { data: rows } = await SUPABASE.from('days').select('date,data').eq('user_id', u.id).gte('date', since);
+  if(rows) rows.forEach(r=>{ db.days[r.date] = r.data; });
+  try{ localStorage.setItem(KEY, JSON.stringify(db)); }catch(e){}
+}
+
 render();
-if(!db.profile) openSetup();
+boot();
+async function boot(){
+  if(SUPABASE_URL.indexOf('PASTE') < 0){
+    await new Promise(res => loadSupabase(res));
+    await initSupabase();
+  }
+  if(!db.profile) openSetup();
+}
 </script>
 </body>
 </html>
