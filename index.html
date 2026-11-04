@@ -46,13 +46,14 @@
     padding:8px 14px;border-radius:999px;font-size:14px;font-weight:700}
   .streak .n{color:var(--accent)}
 
-  /* ===== 右上角登录入口 ===== */
-  .acct-float{position:fixed;top:14px;right:14px;z-index:60;display:inline-flex;align-items:center;gap:7px;
-    background:rgba(20,22,26,.88);border:1px solid var(--line);color:var(--ink);padding:9px 15px;border-radius:999px;
-    font-size:13.5px;font-weight:700;cursor:pointer;backdrop-filter:blur(8px);box-shadow:0 4px 18px rgba(0,0,0,.4);transition:.15s}
+  /* ===== 右上角账号入口（固定在 Hero 右上，随页滚动，不悬浮） ===== */
+  .acct-float{position:absolute;top:14px;right:14px;z-index:5;display:inline-flex;align-items:center;gap:6px;
+    background:rgba(20,22,26,.82);border:1px solid var(--line);color:var(--ink);padding:6px 12px;border-radius:999px;
+    font-size:12px;font-weight:700;cursor:pointer;backdrop-filter:blur(8px);box-shadow:0 4px 14px rgba(0,0,0,.35);transition:.15s;max-width:56vw}
   .acct-float:hover{border-color:var(--accent);color:var(--accent)}
-  .acct-float .dot{width:8px;height:8px;border-radius:50%;background:var(--muted2);flex:none}
+  .acct-float .dot{width:7px;height:7px;border-radius:50%;background:var(--muted2);flex:none}
   .acct-float.on .dot{background:var(--good)}
+  .acct-float #acctTxt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
   .banner{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25);color:#fcd34d;border-radius:12px;
     padding:12px 16px;font-size:13px;margin:14px 0 4px}
@@ -176,6 +177,8 @@
   .detail-block ul{margin:0;padding-left:0;list-style:none;font-size:13.5px;color:#d1d5db;line-height:1.8}
   .detail-block li.err{color:#fca5a5}
   .detail-block li.ok{color:#86efac}
+  .ex-img{max-width:250px;margin:14px auto 0;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px}
+  .ex-img svg{max-height:150px}
   .modal-foot{position:sticky;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:12px 20px;display:flex;justify-content:space-between;gap:10px;align-items:center}
   .modal-foot .pg{font-size:12px;color:var(--muted)}
   .setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
@@ -236,11 +239,11 @@
 </style>
 </head>
 <body>
-<button class="acct-float" id="acctBtn" onclick="acctClick()"><span class="dot"></span><span id="acctTxt">登录 / 注册</span></button>
 <div class="wrap">
 
   <!-- 激励 Hero -->
   <div class="hero">
+    <button class="acct-float" id="acctBtn" onclick="acctClick()"><span class="dot"></span><span id="acctTxt">登录 / 注册</span></button>
     <div class="bg" style="background-image:url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1600&q=80&auto=format&fit=crop')"></div>
     <div class="ov"></div>
     <div class="hero-in">
@@ -383,6 +386,7 @@
           <div class="cell"><div class="k">组数 × 次数</div><div class="v" id="mSets"></div></div>
           <div class="cell"><div class="k">组间休息</div><div class="v" id="mRest"></div></div>
         </div>
+        <div class="ex-img" id="mImgWrap" style="display:none"></div>
         <div class="detail-block"><h4>🧍 起始姿势</h4><p id="mStart"></p></div>
         <div class="detail-block"><h4>🏃 动作过程</h4><ol id="mMove"></ol></div>
         <div class="detail-block"><h4>🫁 呼吸</h4><p id="mBreath"></p></div>
@@ -1212,6 +1216,58 @@ const EXERCISE_DETAIL = {
   }
 };
 
+/* ===== 动作标准示意图（简易火柴人，随动作要领弹窗显示） ===== */
+function fig(p){
+  const C='#ff8a4d', G='#3a4048';
+  let s='';
+  if(p.ground) s+=`<line x1="6" y1="70" x2="114" y2="70" stroke="${G}" stroke-width="2" stroke-linecap="round"/>`;
+  if(p.wall) s+=`<line x1="14" y1="8" x2="14" y2="70" stroke="${G}" stroke-width="3" stroke-linecap="round"/>`;
+  if(p.bar) s+=`<line x1="56" y1="20" x2="104" y2="20" stroke="${G}" stroke-width="3" stroke-linecap="round"/>`;
+  if(p.box) s+=`<rect x="${p.box[0]}" y="${p.box[1]}" width="${p.box[2]}" height="${p.box[3]}" rx="3" fill="none" stroke="${G}" stroke-width="2"/>`;
+  const L=(a,b,w=3.5)=>`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="${C}" stroke-width="${w}" stroke-linecap="round"/>`;
+  const J=a=>`<circle cx="${a[0]}" cy="${a[1]}" r="2.4" fill="${C}"/>`;
+  s+=`<circle cx="${p.h[0]}" cy="${p.h[1]}" r="5" fill="none" stroke="${C}" stroke-width="3"/>`;
+  s+=L(p.s,p.hip,4.5);
+  s+=L(p.s,p.armL[0])+L(p.armL[0],p.armL[1]);
+  s+=L(p.s,p.armR[0])+L(p.armR[0],p.armR[1]);
+  s+=L(p.hip,p.legL[0])+L(p.legL[0],p.legL[1]);
+  s+=L(p.hip,p.legR[0])+L(p.legR[0],p.legR[1]);
+  [p.s,p.hip,p.armL[0],p.armL[1],p.armR[0],p.armR[1],p.legL[0],p.legL[1],p.legR[0],p.legR[1]].forEach(J);
+  return `<svg viewBox="0 0 120 80" width="100%" style="display:block">${s}</svg>`;
+}
+const EX_IMG = {
+  '上斜俯卧撑': fig({ground:1, box:[18,40,30,8], h:[30,30], s:[36,34], hip:[74,52], armL:[[40,36],[34,40]], armR:[[38,35],[30,40]], legL:[[86,60],[98,70]], legR:[[86,60],[100,70]]}),
+  '自重深蹲': fig({ground:1, h:[60,18], s:[60,28], hip:[58,50], armL:[[48,34],[38,40]], armR:[[72,34],[82,40]], legL:[[46,60],[36,70]], legR:[[72,60],[82,70]]}),
+  '臀桥': fig({ground:1, h:[24,62], s:[40,60], hip:[64,42], armL:[[36,68],[28,68]], armR:[[46,68],[52,68]], legL:[[72,48],[68,70]], legR:[[78,48],[86,70]]}),
+  '死虫式': fig({ground:1, h:[26,62], s:[42,58], hip:[58,58], armL:[[46,44],[46,32]], armR:[[56,44],[56,32]], legL:[[64,48],[72,42]], legR:[[70,48],[78,42]]}),
+  '鸟狗式': fig({ground:1, h:[40,26], s:[48,40], hip:[58,46], armL:[[34,38],[20,36]], armR:[[44,56],[42,64]], legL:[[50,60],[46,70]], legR:[[68,54],[86,56]]}),
+  '平板支撑': fig({ground:1, h:[24,54], s:[34,54], hip:[78,54], armL:[[30,66],[22,66]], armR:[[36,66],[30,66]], legL:[[92,54],[102,70]], legR:[[92,54],[102,70]]}),
+  '跪姿/标准俯卧撑': fig({ground:1, h:[26,52], s:[36,52], hip:[76,52], armL:[[30,60],[26,68]], armR:[[36,60],[32,68]], legL:[[88,52],[100,70]], legR:[[90,52],[102,70]]}),
+  '派克俯卧撑（肩）': fig({ground:1, h:[44,46], s:[50,42], hip:[62,30], armL:[[48,52],[42,66]], armR:[[52,50],[48,66]], legL:[[74,42],[90,70]], legR:[[76,44],[94,70]]}),
+  '椅子臂屈伸': fig({ground:1, box:[66,40,26,8], h:[46,32], s:[52,42], hip:[56,58], armL:[[58,44],[68,42]], armR:[[56,46],[72,44]], legL:[[50,66],[38,70]], legR:[[58,66],[54,70]]}),
+  '平板触肩': fig({ground:1, h:[26,52], s:[36,52], hip:[76,52], armL:[[30,60],[26,68]], armR:[[40,48],[42,54]], legL:[[88,52],[100,70]], legR:[[90,52],[102,70]]}),
+  '仰卧卷腹': fig({ground:1, h:[28,50], s:[42,50], hip:[60,58], armL:[[46,46],[38,44]], armR:[[50,46],[42,44]], legL:[[66,50],[66,66]], legR:[[72,52],[76,68]]}),
+  '箭步蹲（原地）': fig({ground:1, h:[52,20], s:[54,30], hip:[54,48], armL:[[42,34],[34,30]], armR:[[66,34],[74,30]], legL:[[46,60],[38,70]], legR:[[64,58],[72,70]]}),
+  '保加利亚分腿蹲': fig({ground:1, box:[86,34,20,8], h:[46,18], s:[48,28], hip:[50,46], armL:[[36,32],[28,28]], armR:[[60,32],[68,28]], legL:[[42,58],[36,70]], legR:[[56,52],[86,36]]}),
+  '侧弓步': fig({ground:1, h:[60,16], s:[60,27], hip:[60,46], armL:[[48,34],[40,36]], armR:[[72,34],[80,36]], legL:[[44,60],[30,70]], legR:[[70,58],[88,70]]}),
+  '臀桥（单腿进阶）': fig({ground:1, h:[24,62], s:[40,60], hip:[62,42], armL:[[36,68],[28,68]], armR:[[46,68],[52,68]], legL:[[70,48],[66,70]], legR:[[68,34],[70,22]]}),
+  '蚌式开合': fig({ground:1, h:[40,54], s:[52,52], hip:[62,56], armL:[[48,58],[42,68]], armR:[[56,58],[50,68]], legL:[[68,54],[74,62]], legR:[[70,56],[82,48]]}),
+  '靠墙静蹲': fig({ground:1, wall:1, h:[30,18], s:[28,30], hip:[26,50], armL:[[20,40],[16,44]], armR:[[22,44],[16,48]], legL:[[40,58],[46,70]], legR:[[42,58],[52,70]]}),
+  '侧平板': fig({ground:1, h:[28,40], s:[40,40], hip:[74,40], armL:[[34,66],[26,66]], armR:[[36,66],[30,66]], legL:[[88,40],[98,70]], legR:[[88,40],[98,70]]}),
+  '反向卷腹': fig({ground:1, h:[28,58], s:[42,56], hip:[56,50], armL:[[40,66],[32,66]], armR:[[48,66],[56,66]], legL:[[62,44],[56,34]], legR:[[68,44],[64,34]]}),
+  '俄罗斯转体': fig({ground:1, h:[54,22], s:[56,32], hip:[60,46], armL:[[40,38],[28,42]], armR:[[70,36],[86,40]], legL:[[52,56],[46,66]], legR:[[66,54],[72,66]]}),
+  '登山者（慢速）': fig({ground:1, h:[26,50], s:[36,50], hip:[76,50], armL:[[30,58],[26,68]], armR:[[36,58],[32,68]], legL:[[88,52],[96,60]], legR:[[66,44],[58,40]]}),
+  '踏步开合（低冲击）': fig({ground:1, h:[60,16], s:[60,27], hip:[60,46], armL:[[44,26],[34,18]], armR:[[76,26],[86,18]], legL:[[50,58],[36,70]], legR:[[70,58],[84,70]]}),
+  '原地高抬腿（轻）': fig({ground:1, h:[60,16], s:[60,27], hip:[60,46], armL:[[46,34],[38,38]], armR:[[74,34],[82,38]], legL:[[52,58],[46,70]], legR:[[68,50],[72,36]]}),
+  '仰卧交替抬腿': fig({ground:1, h:[28,58], s:[42,56], hip:[56,56], armL:[[40,66],[32,66]], armR:[[48,66],[56,66]], legL:[[62,44],[64,30]], legR:[[66,52],[72,44]]}),
+  '快走/爬楼（低冲击有氧）': fig({ground:1, h:[54,18], s:[56,28], hip:[56,46], armL:[[46,34],[38,40]], armR:[[66,34],[74,30]], legL:[[50,58],[44,70]], legR:[[62,56],[70,66]]}),
+  '俯卧划臂/超人式': fig({ground:1, h:[34,44], s:[46,46], hip:[72,46], armL:[[34,40],[20,38]], armR:[[42,42],[30,40]], legL:[[80,42],[92,38]], legR:[[82,44],[96,42]]}),
+  '游泳式': fig({ground:1, h:[34,44], s:[46,46], hip:[72,46], armL:[[34,38],[20,36]], armR:[[42,44],[54,46]], legL:[[80,44],[88,46]], legR:[[82,40],[96,34]]}),
+  '毛巾划船（门框）': fig({ground:1, bar:1, h:[60,18], s:[58,28], hip:[64,44], armL:[[52,26],[48,22]], armR:[[64,26],[70,22]], legL:[[58,56],[52,70]], legR:[[70,54],[78,68]]}),
+  '提踵': fig({ground:1, h:[60,18], s:[60,28], hip:[60,46], armL:[[48,34],[40,34]], armR:[[72,34],[80,34]], legL:[[54,58],[50,66]], legR:[[66,58],[70,66]]}),
+  '单腿臀桥': fig({ground:1, h:[24,62], s:[40,60], hip:[62,42], armL:[[36,68],[28,68]], armR:[[46,68],[52,68]], legL:[[70,48],[66,70]], legR:[[68,34],[70,22]]})
+};
+
 /* ===== 状态 ===== */
 const KEY='leanMusclePlan_v1';
 /* ===== Supabase 云同步配置（部署前填入真实值） ===== */
@@ -1664,6 +1720,9 @@ function renderModal(w){
   document.getElementById('mTarget').textContent = d.target || '全身';
   document.getElementById('mSets').textContent = m.sets + ' × ' + m.reps;
   document.getElementById('mRest').textContent = m.rest;
+  const iw = document.getElementById('mImgWrap');
+  const img = EX_IMG[m.name];
+  if(img){ iw.style.display='block'; iw.innerHTML = img; } else { iw.style.display='none'; }
   document.getElementById('mStart').textContent = d.start || '';
   document.getElementById('mMove').innerHTML = (d.move||[]).map(s=>`<li>${s}</li>`).join('');
   document.getElementById('mBreath').textContent = d.breath || '';
