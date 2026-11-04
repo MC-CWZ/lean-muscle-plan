@@ -193,20 +193,31 @@
   .dot-no{color:#3a4048}
 
   /* ===== 打卡日历 ===== */
-  .cal-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
-  .cal-nav .m{font-size:16px;font-weight:800}
-  .cal-nav button{background:var(--card2);border:1px solid var(--line);color:#d1d5db;border-radius:9px;padding:7px 12px;font-size:13px;font-weight:700;cursor:pointer}
+  .cal-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+  .cal-nav .m{font-size:15px;font-weight:800}
+  .cal-nav button{background:var(--card2);border:1px solid var(--line);color:#d1d5db;border-radius:8px;padding:6px 11px;font-size:12.5px;font-weight:700;cursor:pointer}
   .cal-nav button:hover{border-color:var(--accent);color:var(--accent)}
-  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
-  .cal-dow{text-align:center;font-size:11.5px;color:var(--muted2);font-weight:600;padding:4px 0}
-  .cal-day{position:relative;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;background:var(--card2);border:1px solid var(--line);cursor:pointer;font-size:14px;color:var(--ink);min-height:44px;transition:.12s}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+  .cal-dow{text-align:center;font-size:11px;color:var(--muted2);font-weight:600;padding:2px 0}
+  .cal-day{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:8px;background:var(--card2);border:1px solid var(--line);cursor:pointer;font-size:13px;color:var(--ink);min-height:34px;padding:2px 0;transition:.12s}
   .cal-day:hover{border-color:var(--accent)}
   .cal-day.other{opacity:.28;cursor:default}
   .cal-day.today{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
-  .cal-day .mark{font-size:15px;line-height:1;height:17px}
-  .cal-day .n{font-weight:700}
+  .cal-day .mark{font-size:12px;line-height:1;height:13px}
+  .cal-day .n{font-weight:700;line-height:1.1}
   .cal-day.full .mark{color:var(--good)}
   .cal-day.part .mark{color:var(--accent)}
+  /* ===== 食材替换 + 食材库 ===== */
+  .swap{background:none;border:1px solid var(--line);color:var(--accent);border-radius:6px;font-size:11px;padding:1px 6px;margin-left:6px;cursor:pointer;font-weight:700;vertical-align:middle}
+  .swap:hover{border-color:var(--accent);background:rgba(255,107,26,.12)}
+  .swapped{color:var(--accent);font-weight:600;font-size:12px;margin-left:4px}
+  .food-add{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+  .food-add input{width:100%}
+  .food-add input:first-child{grid-column:1/-1}
+  .rep-label{display:block;margin:12px 0 0;font-size:13px;color:var(--muted)}
+  .rep-label select,.rep-label input{width:100%;margin-top:6px}
+  .rep-cur{font-size:13px;color:var(--muted);background:var(--card2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;line-height:1.6}
+  .rep-preview{font-size:13px;color:var(--accent);font-weight:700;margin:6px 0 2px;min-height:18px}
   /* ===== 做法 + 详情弹窗 ===== */
   .cook-method{margin-bottom:20px}
   .cook-method:last-child{margin-bottom:0}
@@ -296,6 +307,10 @@
         <p style="margin:0;color:var(--muted2);font-size:12.5px">速查：1碗熟饭≈150g · 1片全麦面包≈35g · 1个蛋≈50g · 1杯≈250ml · 1汤匙≈15g · 1茶匙≈5g · 1根香蕉≈120g</p>
       </div>
     </details>
+    <div style="margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <button class="btn-ghost btn-small" onclick="openFoods()">🥬 我的食材库<span id="foodCount"></span></button>
+      <span style="font-size:12px;color:var(--muted)">把牛油果、青瓜等加进来，就能在每餐里点「⇄」替换食材</span>
+    </div>
     <div class="meals" id="meals"></div>
   </section>
 
@@ -332,7 +347,7 @@
 
   <!-- 力量训练 -->
   <section>
-    <h2 class="sec-title"><span class="em">💪</span>今日力量训练<span class="lbl">居家徒手/小器械</span></h2>
+    <h2 class="sec-title"><span class="em">💪</span>今日力量训练<span class="lbl">居家徒手 · 低冲击 · 可换一套</span></h2>
     <div class="card" id="workout"></div>
   </section>
 
@@ -457,6 +472,53 @@
     </div>
   </div>
 
+  <!-- 替换食材弹窗 -->
+  <div class="modal-ov" id="repOv">
+    <div class="modal">
+      <div class="modal-head"><div><h3 id="repTitle">替换食材</h3></div><button class="modal-close" onclick="closeReplace()">✕</button></div>
+      <div class="modal-body">
+        <div class="rep-cur" id="repCur"></div>
+        <label class="rep-label">换成食材
+          <select id="repFood"></select>
+        </label>
+        <label class="rep-label">份量（克）
+          <input id="repAmt" type="number" min="1" placeholder="100">
+        </label>
+        <div class="rep-preview" id="repPreview"></div>
+        <div class="calc-row">
+          <button class="btn-primary" onclick="doReplace()">✅ 替换</button>
+          <button class="btn-ghost btn-small" id="repRestore" onclick="restoreItem()" style="display:none">↩ 还原原食材</button>
+          <button class="btn-ghost btn-small" onclick="closeReplace();openFoods()">＋ 新建食材</button>
+          <span class="calc-result" id="repHint"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 食材库弹窗 -->
+  <div class="modal-ov" id="foodsOv">
+    <div class="modal">
+      <div class="modal-head"><div><h3>🥬 我的食材库</h3></div><button class="modal-close" onclick="closeFoods()">✕</button></div>
+      <div class="modal-body">
+        <p style="font-size:13px;color:var(--muted);margin:0 0 10px">营养按<b>每 100g</b>填写（照着包装上的营养成分表抄就行）。加到库后，回到三餐点食材旁的「⇄」即可替换，按克数自动换算热量。</p>
+        <div class="food-add">
+          <input id="fdName" placeholder="食材名，如：牛油果">
+          <input id="fdKcal" type="number" placeholder="每100g热量 kcal">
+          <input id="fdPro" type="number" placeholder="蛋白 g">
+          <input id="fdFat" type="number" placeholder="脂肪 g">
+          <input id="fdCarb" type="number" placeholder="碳水 g">
+        </div>
+        <button class="btn-primary btn-small" style="margin-top:8px;width:100%" onclick="addFood()">➕ 添加到食材库</button>
+        <div style="margin:14px 0 6px;font-size:12.5px;color:var(--muted);font-weight:700">我的食材</div>
+        <ul class="custom-list" id="foodList"></ul>
+        <details style="margin-top:12px"><summary style="cursor:pointer;font-size:12.5px;color:var(--muted)">查看内置常用食材（可直接替换）</summary>
+          <div id="builtinFoods" style="font-size:12px;color:var(--muted2);line-height:1.9;margin-top:6px"></div>
+        </details>
+      </div>
+      <div class="modal-foot"><button class="btn-ghost btn-small" onclick="closeFoods()">完成</button></div>
+    </div>
+  </div>
+
   <footer>
     未登录时数据只保存在本地浏览器；登录后自动同步到云端，手机/电脑数据互通。<br>
     食谱与动作参考自各平台热门内容；营养数据为估算值，实际以食材标签为准。图片来自 Unsplash（免费图源，需联网显示）。你的目标与体重在「⚙️ 设置」中填写。
@@ -471,6 +533,8 @@ function getTarget(){
   return { kcal:0, protein:0, fat:0, carb:0 };
 }
 function getStartWeight(){ return db.profile ? db.profile.weight : 0; }
+function getFoods(){ return (db.profile && db.profile.foods) || []; }
+function setFoods(list){ if(!db.profile) db.profile = {}; db.profile.foods = list; }
 function computeTarget(sex, height, weight, age, activity, pace){
   const bmr = sex==='女' ? 10*weight + 6.25*height - 5*age - 161 : 10*weight + 6.25*height - 5*age + 5;
   const act = {久坐:1.2, 轻度:1.375, 中度:1.55, 高度:1.725}[activity] || 1.375;
@@ -630,6 +694,62 @@ const MEALS = {
 };
 const MEAL_LABEL = { breakfast:'🥣 早餐', lunch:'🍱 午餐', dinner:'🥗 晚餐', snack:'🍌 加餐' };
 
+/* ===== 内置食材库（每 100g 营养，用于替换食材） ===== */
+const FOODS = {
+  '牛油果':{kcal:160,fat:15,pro:2,carb:9},
+  '青瓜/黄瓜':{kcal:15,fat:0.1,pro:0.7,carb:3.6},
+  '番茄':{kcal:18,fat:0.2,pro:0.9,carb:3.9},
+  '生菜':{kcal:15,fat:0.2,pro:1.4,carb:2.9},
+  '菠菜':{kcal:23,fat:0.4,pro:2.9,carb:3.6},
+  '西兰花':{kcal:34,fat:0.4,pro:2.8,carb:7},
+  '胡萝卜':{kcal:41,fat:0.2,pro:0.9,carb:10},
+  '西葫芦':{kcal:17,fat:0.3,pro:1.2,carb:3.1},
+  '彩椒':{kcal:31,fat:0.3,pro:1,carb:6},
+  '蘑菇':{kcal:22,fat:0.3,pro:3.1,carb:3.3},
+  '金针菇':{kcal:26,fat:0.3,pro:2.4,carb:6},
+  '冬瓜':{kcal:12,fat:0.2,pro:0.4,carb:2.6},
+  '白萝卜':{kcal:16,fat:0.1,pro:0.6,carb:4},
+  '紫甘蓝':{kcal:25,fat:0.2,pro:1.4,carb:6},
+  '鸡胸肉':{kcal:110,fat:1.2,pro:23,carb:0},
+  '鸡腿肉(去皮)':{kcal:119,fat:4,pro:20,carb:0},
+  '瘦牛肉':{kcal:125,fat:4,pro:21,carb:0},
+  '瘦猪肉':{kcal:143,fat:6,pro:20,carb:0},
+  '牛腱':{kcal:106,fat:3,pro:20,carb:0},
+  '虾仁':{kcal:85,fat:0.7,pro:18,carb:1},
+  '鳕鱼':{kcal:90,fat:0.8,pro:18,carb:0},
+  '龙利鱼':{kcal:90,fat:1.8,pro:18,carb:0},
+  '三文鱼':{kcal:208,fat:13,pro:20,carb:0},
+  '金枪鱼(水浸)':{kcal:116,fat:0.8,pro:26,carb:0},
+  '鸡蛋':{kcal:143,fat:9.5,pro:13,carb:1},
+  '豆腐(北)':{kcal:76,fat:4.8,pro:8,carb:2},
+  '豆腐(嫩)':{kcal:55,fat:2.7,pro:5,carb:2},
+  '鹰嘴豆':{kcal:164,fat:2.6,pro:9,carb:27},
+  '毛豆':{kcal:123,fat:5,pro:12,carb:11},
+  '糙米饭(熟)':{kcal:112,fat:1,pro:2.6,carb:24},
+  '白米饭(熟)':{kcal:116,fat:0.3,pro:2.6,carb:26},
+  '燕麦片':{kcal:370,fat:7,pro:13,carb:66},
+  '藜麦(熟)':{kcal:120,fat:1.9,pro:4.4,carb:21},
+  '荞麦面(生)':{kcal:340,fat:3,pro:12,carb:71},
+  '全麦面包':{kcal:247,fat:3.4,pro:13,carb:41},
+  '红薯':{kcal:86,fat:0.1,pro:1.6,carb:20},
+  '紫薯':{kcal:82,fat:0.2,pro:1.2,carb:18},
+  '土豆':{kcal:77,fat:0.1,pro:2,carb:17},
+  '玉米':{kcal:112,fat:1.2,pro:4,carb:22},
+  '山药':{kcal:57,fat:0.2,pro:1.9,carb:12},
+  '香蕉':{kcal:89,fat:0.3,pro:1.1,carb:23},
+  '苹果':{kcal:52,fat:0.2,pro:0.3,carb:14},
+  '蓝莓':{kcal:57,fat:0.3,pro:0.7,carb:15},
+  '橙子':{kcal:47,fat:0.1,pro:0.9,carb:12},
+  '猕猴桃':{kcal:61,fat:0.5,pro:1.1,carb:15},
+  '无糖希腊酸奶':{kcal:60,fat:0.4,pro:10,carb:4},
+  '低脂牛奶':{kcal:43,fat:1.5,pro:3.4,carb:5},
+  '无糖豆浆':{kcal:30,fat:1.4,pro:3,carb:1.4},
+  '乳清蛋白粉':{kcal:400,fat:7,pro:80,carb:7},
+  '混合坚果':{kcal:600,fat:50,pro:20,carb:20},
+  '花生酱':{kcal:590,fat:50,pro:25,carb:20},
+  '橄榄油':{kcal:900,fat:100,pro:0,carb:0}
+};
+
 /* ===== 手测量法（没有秤也能搭） ===== */
 const ALT = {
   '燕麦片|60g':'≈半碗', '燕麦片|30g':'≈3汤匙',
@@ -738,37 +858,65 @@ const COOK = {
   ]
 };
 
-/* ===== 训练库 ===== */
+/* ===== 训练库（全部居家徒手 / 低冲击，每日自动轮换，也可手动换一套） ===== */
 const WORKOUTS = [
-  { id:'rest', name:'休息 / 低强度拉伸', note:'今天让身体恢复。可做 15 分钟全身拉伸或散步 30 分钟，帮助肌肉恢复、放松膝盖和腰。', moves:[] },
-  { id:'full', name:'全身循环 · 新手减脂（徒手）', warmup:'先热身 5 分钟：原地踏步 2 分钟 + 转肩/转髋 + 靠墙静蹲 30 秒。', moves:[
-    {name:'跪姿/标准俯卧撑', sets:'3组', reps:'10-15次', rest:'60秒', gear:'徒手', tip:'核心收紧、身体成直线，下放慢；做不了标准就跪姿或手撑桌面做上斜。'},
-    {name:'自重深蹲', sets:'3组', reps:'15次', rest:'60秒', gear:'徒手', tip:'脚跟踩实、膝盖对准脚尖不过度内扣，下蹲至大腿平行即可，保护膝盖。'},
-    {name:'臀桥', sets:'3组', reps:'15-20次', rest:'45秒', gear:'徒手', tip:'臀部发力顶起，顶峰停顿 1 秒，不要用腰代偿。'},
-    {name:'死虫式', sets:'2组', reps:'每侧12次', rest:'45秒', gear:'徒手', tip:'下背贴地，缓慢交替伸对侧手脚，练核心稳定。'},
-    {name:'平板支撑', sets:'3组', reps:'20-40秒', rest:'45秒', gear:'徒手', tip:'不塌腰不撅臀；坚持不住就改跪姿平板。'}
+  { id:'rest', img:'rest', name:'休息 / 低强度拉伸', note:'今天让身体恢复。可做 15 分钟全身拉伸或散步 30 分钟，帮助肌肉恢复、放松膝盖和腰。', moves:[] },
+  { id:'wb-full', img:'full', name:'全身循环 · 基础版（徒手）', warmup:'热身 5 分钟：原地踏步 2 分钟 + 转肩/转髋 + 靠墙静蹲 30 秒。', moves:[
+    {name:'上斜俯卧撑', sets:'3组', reps:'10-15次', rest:'60秒', gear:'徒手', tip:'手撑桌面/沙发做，身体成直线，比标准俯卧撑更安全。'},
+    {name:'自重深蹲', sets:'3组', reps:'15次', rest:'60秒', gear:'徒手', tip:'脚跟踩实、膝盖对准脚尖，下蹲至大腿平行即可。'},
+    {name:'臀桥', sets:'3组', reps:'15-20次', rest:'45秒', gear:'徒手', tip:'臀部发力顶起，顶峰停 1 秒，别用腰代偿。'},
+    {name:'死虫式', sets:'2组', reps:'每侧12次', rest:'45秒', gear:'徒手', tip:'下背贴地，缓慢交替伸对侧手脚。'},
+    {name:'鸟狗式', sets:'2组', reps:'每侧12次', rest:'45秒', gear:'徒手', tip:'四足跪姿，伸对侧手脚，身体别晃。'},
+    {name:'平板支撑', sets:'3组', reps:'20-40秒', rest:'45秒', gear:'徒手', tip:'不塌腰不撅臀；坚持不住就改跪姿。'}
   ]},
-  { id:'upper', name:'上肢 + 核心（哑铃/弹力带）', warmup:'热身 5 分钟：开肩绕环 + 空手推举 15 次 + 手臂画圈。', moves:[
-    {name:'哑铃卧推（可躺地面）', sets:'3组', reps:'10-12次', rest:'60秒', gear:'哑铃', tip:'躺在地面或凳上，手肘约 45°，下放至接近触胸再推起。'},
-    {name:'俯身哑铃划船', sets:'3组', reps:'12次', rest:'60秒', gear:'哑铃', tip:'背挺直、肘沿身体向后拉，练背不弓背。'},
-    {name:'哑铃推举（坐姿）', sets:'3组', reps:'10-12次', rest:'60秒', gear:'哑铃', tip:'从肩部向上推起，核心收紧，不要塌腰。'},
-    {name:'弹力带划船 / W夹背', sets:'3组', reps:'12-15次', rest:'45秒', gear:'弹力带', tip:'改善圆肩驼背，肩胛骨向后夹紧。'},
-    {name:'椅子臂屈伸', sets:'3组', reps:'10-12次', rest:'45秒', gear:'徒手', tip:'双手撑稳椅子边缘，屈肘下沉身体，练肱三头肌。'},
-    {name:'仰卧卷腹', sets:'3组', reps:'15-20次', rest:'45秒', gear:'徒手', tip:'用腹肌卷起，不要猛拽脖子。'}
+  { id:'wb-push', img:'upper', name:'上肢推 + 肩 + 核心（徒手）', warmup:'热身 5 分钟：开肩绕环 + 转肩 + 手腕画圈。', moves:[
+    {name:'上斜俯卧撑', sets:'3组', reps:'12-15次', rest:'60秒', gear:'徒手', tip:'撑桌面/沙发，撑点越低越难，逐步降低高度。'},
+    {name:'跪姿/标准俯卧撑', sets:'3组', reps:'10-15次', rest:'60秒', gear:'徒手', tip:'核心收紧、身体成直线；做不了就跪姿。'},
+    {name:'派克俯卧撑（肩）', sets:'3组', reps:'8-12次', rest:'60秒', gear:'徒手', tip:'臀部抬高、身体呈倒V，用肩发力，头顶轻点地。'},
+    {name:'椅子臂屈伸', sets:'3组', reps:'10-12次', rest:'45秒', gear:'徒手', tip:'椅子靠墙放稳，屈肘下沉，练肱三头肌。'},
+    {name:'平板触肩', sets:'3组', reps:'每侧10次', rest:'45秒', gear:'徒手', tip:'平板支撑位交替触肩，身体尽量不晃。'},
+    {name:'仰卧卷腹', sets:'3组', reps:'15-20次', rest:'45秒', gear:'徒手', tip:'用腹肌卷起，别猛拽脖子。'}
   ]},
-  { id:'lower', name:'下肢 + 核心（徒手/哑铃）', warmup:'热身 5 分钟：原地高抬腿（轻）+ 髋关节环绕 + 徒手深蹲 10 次。', moves:[
-    {name:'哑铃深蹲', sets:'4组', reps:'12-15次', rest:'60秒', gear:'哑铃', tip:'可双手抱一个哑铃于胸前，动作全程脚跟踩实、膝盖稳定。'},
-    {name:'箭步蹲（原地）', sets:'3组', reps:'每侧10-12次', rest:'60秒', gear:'徒手', tip:'前膝不超过脚尖太多，身体垂直下沉，膝盖不适就减小幅度。'},
-    {name:'臀桥（单腿进阶）', sets:'3组', reps:'15次', rest:'45秒', gear:'徒手', tip:'双脚臀桥稳定后可尝试单腿，臀部持续发力。'},
-    {name:'弹力带侧步走', sets:'3组', reps:'每侧12步', rest:'45秒', gear:'弹力带', tip:'弹力带套膝盖上方，半蹲姿势横向走，激活臀部。'},
-    {name:'仰卧交替抬腿', sets:'3组', reps:'20次', rest:'45秒', gear:'徒手', tip:'下背贴地，慢起慢落，练下腹。'}
+  { id:'wb-legs', img:'lower', name:'下肢 + 臀（徒手，护膝）', warmup:'热身 5 分钟：原地高抬腿(轻) + 髋关节环绕 + 徒手深蹲 10 次。', moves:[
+    {name:'自重深蹲', sets:'4组', reps:'12-15次', rest:'60秒', gear:'徒手', tip:'脚跟踩实、膝盖对准脚尖，控制下蹲速度。'},
+    {name:'箭步蹲（原地）', sets:'3组', reps:'每侧10-12次', rest:'60秒', gear:'徒手', tip:'前膝别超脚尖太多，膝盖不适就减小幅度。'},
+    {name:'保加利亚分腿蹲', sets:'3组', reps:'每侧10次', rest:'60秒', gear:'徒手', tip:'后脚搭沙发/凳，垂直下蹲，重点在前腿。'},
+    {name:'侧弓步', sets:'3组', reps:'每侧10-12次', rest:'60秒', gear:'徒手', tip:'向侧迈步下蹲，练大腿内侧与臀，膝盖对准脚尖。'},
+    {name:'臀桥（单腿进阶）', sets:'3组', reps:'每侧12次', rest:'45秒', gear:'徒手', tip:'熟练双脚后可单腿，保持骨盆水平。'},
+    {name:'蚌式开合', sets:'3组', reps:'每侧15次', rest:'30秒', gear:'徒手', tip:'侧躺屈膝，膝盖像蚌壳开合，练臀外侧。'},
+    {name:'靠墙静蹲', sets:'3组', reps:'30-45秒', rest:'45秒', gear:'徒手', tip:'背贴墙、大腿约平行，膝盖不内扣，护膝友好。'}
   ]},
-  { id:'core', name:'核心强化 + 有氧（低冲击）', warmup:'热身 5 分钟：原地踏步 3 分钟 + 转体 + 肩关节环绕。', moves:[
-    {name:'平板支撑', sets:'3组', reps:'30-60秒', rest:'45秒', gear:'徒手', tip:'全程收腹，不塌腰；进阶可做平板触肩。'},
-    {name:'俄罗斯转体', sets:'3组', reps:'20次', rest:'45秒', gear:'徒手', tip:'双脚可离地或踩地，用躯干旋转，不要只转手臂。'},
-    {name:'登山者（慢速）', sets:'3组', reps:'30秒', rest:'45秒', gear:'徒手', tip:'慢速交替收膝，保护膝盖，避免冲击。'},
-    {name:'死虫式', sets:'2组', reps:'每侧12次', rest:'45秒', gear:'徒手', tip:'下背始终贴地，动作放慢。'},
-    {name:'快走/爬楼（低冲击有氧）', sets:'1组', reps:'15-30分钟', rest:'—', gear:'有氧', tip:'大体重首选快走或爬楼，心率约 120-140，别跳跃。'}
+  { id:'wb-core', img:'core', name:'核心强化（徒手，低冲击）', warmup:'热身 5 分钟：原地踏步 3 分钟 + 转体 + 肩关节环绕。', moves:[
+    {name:'平板支撑', sets:'3组', reps:'30-60秒', rest:'45秒', gear:'徒手', tip:'全程收腹不塌腰；进阶可触肩。'},
+    {name:'死虫式', sets:'3组', reps:'每侧12次', rest:'45秒', gear:'徒手', tip:'下背始终贴地，越慢越有效。'},
+    {name:'鸟狗式', sets:'3组', reps:'每侧12次', rest:'45秒', gear:'徒手', tip:'伸对侧手脚，核心收紧身体别晃。'},
+    {name:'俄罗斯转体', sets:'3组', reps:'20次', rest:'45秒', gear:'徒手', tip:'用躯干旋转，别只转手臂；双脚可踩地。'},
+    {name:'侧平板', sets:'3组', reps:'每侧20-30秒', rest:'45秒', gear:'徒手', tip:'身体成直线，髋部别下沉；可屈膝降低难度。'},
+    {name:'反向卷腹', sets:'3组', reps:'12-15次', rest:'45秒', gear:'徒手', tip:'屈膝抬腿、骨盆卷起，练下腹。'}
+  ]},
+  { id:'wb-cardio', img:'core', name:'全身循环 · 低冲击燃脂（徒手）', warmup:'热身 5 分钟：原地踏步 3 分钟 + 转肩 + 提踵 20 次。', moves:[
+    {name:'踏步开合（低冲击）', sets:'3组', reps:'40秒', rest:'30秒', gear:'徒手', tip:'用踏步代替跳跃开合，保护膝盖，逐步加快节奏。'},
+    {name:'原地高抬腿（轻）', sets:'3组', reps:'30秒', rest:'45秒', gear:'徒手', tip:'小幅度抬腿即可，别跳太高，心率慢慢上来。'},
+    {name:'登山者（慢速）', sets:'3组', reps:'30秒', rest:'45秒', gear:'徒手', tip:'慢速交替收膝，控制节奏保护膝盖。'},
+    {name:'自重深蹲', sets:'3组', reps:'15次', rest:'45秒', gear:'徒手', tip:'配合呼吸，蹲起时呼气。'},
+    {name:'仰卧交替抬腿', sets:'3组', reps:'20次', rest:'45秒', gear:'徒手', tip:'下背贴地，慢起慢落练下腹。'},
+    {name:'快走/爬楼（低冲击有氧）', sets:'1组', reps:'15-30分钟', rest:'—', gear:'有氧', tip:'心率约 120-140，别跑跳。'}
+  ]},
+  { id:'wb-pull', img:'upper', name:'上肢拉 + 背 + 核心（徒手）', warmup:'热身 5 分钟：转肩绕环 + 手臂画圈 + 扩胸。', moves:[
+    {name:'俯卧划臂/超人式', sets:'3组', reps:'15次', rest:'45秒', gear:'徒手', tip:'俯卧抬胸抬手，像超人飞，练下背和肩后束。'},
+    {name:'游泳式', sets:'3组', reps:'20秒', rest:'45秒', gear:'徒手', tip:'俯卧交替抬对侧手脚，像在水中游泳。'},
+    {name:'毛巾划船（门框）', sets:'3组', reps:'12-15次', rest:'45秒', gear:'毛巾/徒手', tip:'毛巾绕门把手，身体后仰再拉回，练背。'},
+    {name:'平板支撑', sets:'3组', reps:'30-60秒', rest:'45秒', gear:'徒手', tip:'全程收腹，不塌腰。'},
+    {name:'鸟狗式', sets:'3组', reps:'每侧12次', rest:'45秒', gear:'徒手', tip:'伸对侧手脚，核心稳定。'},
+    {name:'侧平板', sets:'3组', reps:'每侧20-30秒', rest:'45秒', gear:'徒手', tip:'髋部别下沉，可屈膝降低难度。'}
+  ]},
+  { id:'wb-legs2', img:'lower', name:'臀腿塑形（徒手，护膝）', warmup:'热身 5 分钟：原地踏步 2 分钟 + 髋关节环绕 + 靠墙静蹲 30 秒。', moves:[
+    {name:'臀桥', sets:'4组', reps:'15-20次', rest:'45秒', gear:'徒手', tip:'顶峰夹臀停 1 秒，别用腰代偿。'},
+    {name:'单腿臀桥', sets:'3组', reps:'每侧12次', rest:'45秒', gear:'徒手', tip:'保持骨盆水平，两侧一样高。'},
+    {name:'蚌式开合', sets:'3组', reps:'每侧15次', rest:'30秒', gear:'徒手', tip:'侧躺屈膝，膝盖像蚌壳开合。'},
+    {name:'靠墙静蹲', sets:'3组', reps:'30-45秒', rest:'45秒', gear:'徒手', tip:'背贴墙大腿约平行，膝盖不内扣。'},
+    {name:'提踵', sets:'3组', reps:'15-20次', rest:'30秒', gear:'徒手', tip:'扶墙单脚或双脚踮脚，练小腿。'},
+    {name:'箭步蹲（原地）', sets:'3组', reps:'每侧10次', rest:'60秒', gear:'徒手', tip:'垂直下蹲，膝盖不适就减小幅度。'}
   ]}
 ];
 
@@ -925,6 +1073,142 @@ const EXERCISE_DETAIL = {
     breath:'自然有节奏地呼吸。',
     mistakes:['速度过快、上气不接下气','大体重直接跑跳','忽略膝盖的不适信号'],
     tips:['心率保持在约 120-140','大体重首选快走/爬楼，不要跳跃']
+  },
+  '上斜俯卧撑': {
+    gear:'徒手', target:'胸大肌下束、肱三头肌、三角肌前束',
+    start:'双手撑在桌面、沙发或台阶上，比肩略宽，身体从头到脚成一条直线。',
+    move:['屈肘缓慢下降，直到胸口接近支撑物','用胸和手臂发力推回起始','保持身体不塌腰'],
+    breath:'下降时吸气，推起时呼气。',
+    mistakes:['臀部下沉、身体不成直线','手放得太高几乎没难度','只做半程'],
+    tips:['撑点越低越难，从桌面起步逐步降到地面','大体重或新手首选，比标准俯卧撑更护肩']
+  },
+  '鸟狗式': {
+    gear:'徒手', target:'核心、下背、臀、肩',
+    start:'四足跪姿，双手在肩正下方、膝盖在髋正下方，背部平直。',
+    move:['缓慢伸直对侧的一手一脚','身体保持稳定，不要晃动','收回，换另一侧交替'],
+    breath:'伸出时呼气，收回时吸气。',
+    mistakes:['身体左右摇晃','抬得过高导致塌腰','动作太快'],
+    tips:['想象背上放了一杯水，全程别洒','越慢越稳越有效']
+  },
+  '派克俯卧撑（肩）': {
+    gear:'徒手', target:'三角肌前束、肱三头肌',
+    start:'俯撑姿势，臀部向上抬高，身体呈倒 V 形，手脚略窄于肩。',
+    move:['屈肘，让头顶缓慢接近地面','用肩部发力推回起始','保持臀部始终抬高'],
+    breath:'下降时吸气，推起时呼气。',
+    mistakes:['臀部放平变成普通俯卧撑','头部猛磕地面','耸肩'],
+    tips:['降低臀位高度可增加难度','练肩效果好，替代站姿推举']
+  },
+  '平板触肩': {
+    gear:'徒手', target:'核心、肩、胸',
+    start:'标准平板支撑姿势，前臂或手掌撑地，身体成直线。',
+    move:['缓慢抬起一只手去触对侧肩膀','放回，换另一只手','保持髋部不左右摇摆'],
+    breath:'自然呼吸，触肩时呼气。',
+    mistakes:['抬肩时身体大幅晃动','髋部下沉','憋气'],
+    tips:['双脚分得略宽一点更稳','核心收紧是重点']
+  },
+  '保加利亚分腿蹲': {
+    gear:'徒手', target:'股四头肌、臀部、核心',
+    start:'背对沙发或稳固凳子，后脚脚背搭在上面，前脚站稳。',
+    move:['垂直下蹲，直到前腿大腿约平行地面','前脚跟发力站起','重复后换另一侧'],
+    breath:'下蹲时吸气，站起时呼气。',
+    mistakes:['前膝过度前移','身体前倾过多','下蹲过深压膝盖'],
+    tips:['前脚离凳子远一点更练臀，近一点更练腿','扶墙保持平衡']
+  },
+  '侧弓步': {
+    gear:'徒手', target:'大腿内收肌、股四头肌、臀部',
+    start:'双脚与肩同宽站立，双手在胸前合十保持平衡。',
+    move:['向一侧迈一大步，屈膝下蹲，另一腿伸直','蹬地回到中间','换另一侧'],
+    breath:'下蹲时吸气，起身时呼气。',
+    mistakes:['膝盖内扣','迈步太小','身体过度前倾'],
+    tips:['膝盖始终对准脚尖方向','对久坐人群激活内侧肌肉很好']
+  },
+  '蚌式开合': {
+    gear:'徒手', target:'臀中肌、臀外侧',
+    start:'侧躺，双腿屈膝约 90° 叠放，脚并拢。',
+    move:['保持双脚并拢，像蚌壳一样打开上面的膝盖','顶峰停顿 1 秒','缓慢合拢'],
+    breath:'打开时呼气，合拢时吸气。',
+    mistakes:['身体向后仰','用腰发力而不是臀','打开幅度过小'],
+    tips:['手扶髋部感受臀部发力','弹力带套膝盖上方可进阶']
+  },
+  '靠墙静蹲': {
+    gear:'徒手', target:'股四头肌、臀部',
+    start:'背贴墙，双脚与肩同宽、向前迈出一步，大腿与地面约平行。',
+    move:['保持这个姿势静蹲','背部始终贴墙','坚持到目标时长'],
+    breath:'自然均匀呼吸，不要憋气。',
+    mistakes:['膝盖内扣','大腿没蹲到平行','用脚后跟发力不均衡'],
+    tips:['膝盖对准脚尖方向','大体重/膝友非常友好的练腿动作']
+  },
+  '侧平板': {
+    gear:'徒手', target:'腹斜肌、核心、肩',
+    start:'侧卧，前臂撑地，肘在肩正下方，身体从头到脚成一条直线。',
+    move:['抬起髋部，保持身体成直线','坚持到目标时长','换另一侧'],
+    breath:'自然呼吸。',
+    mistakes:['髋部下沉','身体前倾或后仰','头向前伸'],
+    tips:['困难可屈膝做（膝盖撑地）','进阶可向上抬腿']
+  },
+  '反向卷腹': {
+    gear:'徒手', target:'腹直肌下段',
+    start:'仰卧，双腿屈膝抬起，小腿与地面平行，双手放身体两侧。',
+    move:['用下腹发力，把骨盆卷起、膝盖带向胸口','缓慢下放回到起始','重复'],
+    breath:'卷起时呼气，下放时吸气。',
+    mistakes:['用惯性甩腿','下放过快','只抬腿不卷骨盆'],
+    tips:['重点是骨盆卷起，不是抬腿','全程控制、慢放']
+  },
+  '踏步开合（低冲击）': {
+    gear:'徒手', target:'全身、心肺',
+    start:'站直，双脚并拢，双手自然垂放。',
+    move:['左脚向外踏步的同时双手上举','收回，换右脚向外踏步','交替进行，保持节奏'],
+    breath:'自然有节奏地呼吸。',
+    mistakes:['跳起来变成跳跃开合（伤膝）','节奏忽快忽慢','手臂不配合'],
+    tips:['用踏步代替跳跃，膝盖友好','心率上升后再逐步加快']
+  },
+  '原地高抬腿（轻）': {
+    gear:'徒手', target:'心肺、髋屈肌',
+    start:'站直，双脚与髋同宽，双手可自然摆动或叉腰。',
+    move:['小幅交替抬起膝盖至髋部高度','保持上身挺直','连续进行'],
+    breath:'自然呼吸，保持节奏。',
+    mistakes:['幅度过大变成冲刺','身体后仰','落地太重'],
+    tips:['小幅度即可，重点是持续','大体重别跳，原地抬腿就够了']
+  },
+  '俯卧划臂/超人式': {
+    gear:'徒手', target:'下背、竖脊肌、肩后束、臀',
+    start:'俯卧，双臂向前伸直，双腿伸直，额头轻贴地。',
+    move:['同时抬起胸部、手臂和双腿离开地面','顶峰停顿 1 秒','缓慢放下'],
+    breath:'抬起时呼气，放下时吸气。',
+    mistakes:['抬得过高导致腰部过伸','只抬腿不抬手','憋气'],
+    tips:['幅度不用大，感受下背发力','强化后链，改善久坐腰酸']
+  },
+  '游泳式': {
+    gear:'徒手', target:'下背、竖脊肌、臀、肩',
+    start:'俯卧，双臂前伸、双腿伸直。',
+    move:['交替抬起对侧的手和脚，像在水中游泳','快速小幅交替','保持下背和臀部收紧'],
+    breath:'自然呼吸，不要憋气。',
+    mistakes:['幅度过大','颈部紧张后仰','节奏混乱'],
+    tips:['动作小而快，像打水','比超人式更强调协调和耐力']
+  },
+  '毛巾划船（门框）': {
+    gear:'毛巾/徒手', target:'背阔肌、菱形肌、肱二头肌',
+    start:'毛巾绕过门把手，双手抓住毛巾两端，身体向后倾斜、手臂伸直。',
+    move:['用背部力量把身体拉向门','肘部向后下方收，夹紧肩胛骨','缓慢放松还原'],
+    breath:'拉起时呼气，还原时吸气。',
+    mistakes:['只用胳膊拉','身体没有保持直线','还原太快'],
+    tips:['脚越靠前越难，量力调整','徒手练背的居家好方法']
+  },
+  '提踵': {
+    gear:'徒手', target:'小腿（腓肠肌、比目鱼肌）',
+    start:'双脚与髋同宽站立，可扶墙保持平衡。',
+    move:['脚跟尽量向上抬起，脚尖发力','顶峰停顿 1 秒','缓慢下放'],
+    breath:'抬起时呼气，下放时吸气。',
+    mistakes:['弹跳借力','下放太快','只用脚趾抠地'],
+    tips:['单脚做更有效','膝盖伸直练小腿后侧，微屈练深层']
+  },
+  '单腿臀桥': {
+    gear:'徒手', target:'臀大肌、腘绳肌',
+    start:'仰卧屈膝，一脚踩地，另一腿伸直抬起。',
+    move:['支撑腿臀部发力向上顶起','保持骨盆水平、不歪斜','缓慢下放'],
+    breath:'顶起时呼气，下放时吸气。',
+    mistakes:['骨盆歪斜','用腰代偿','顶起幅度不足'],
+    tips:['双脚臀桥熟练后再进阶单腿','保持两侧骨盆一样高']
   }
 };
 
@@ -949,17 +1233,29 @@ function day(date){
 }
 
 /* ===== 工具 ===== */
-function mealTotal(mealKey, idx){
-  const items = MEALS[mealKey][idx].items;
+function mealRepl(d, mk){ return (d.mealReplace && d.mealReplace[mk]) || {}; }
+function effectiveItems(d, mk){
+  const idx = d.meals[mk] ?? 0;
+  const combo = MEALS[mk][idx];
+  const repl = mealRepl(d, mk);
+  return combo.items.map(orig => repl[orig.name] || orig);
+}
+function mealTotal(d, mk){
   let t={kcal:0,fat:0,pro:0,carb:0};
-  items.forEach(i=>{ t.kcal+=i.kcal; t.fat+=i.fat; t.pro+=i.pro; t.carb+=i.carb; });
+  effectiveItems(d, mk).forEach(i=>{ t.kcal+=i.kcal; t.fat+=i.fat; t.pro+=i.pro; t.carb+=i.carb; });
   return t;
 }
 function round1(n){ return Math.round(n*10)/10; }
 function workoutOf(date){
-  const d = new Date(date); const wd = d.getDay(); // 0=Sun
-  const map = {0:'rest',1:'full',2:'upper',3:'lower',4:'core',5:'full',6:'upper'};
-  return WORKOUTS.find(w=>w.id===map[wd]) || WORKOUTS[0];
+  const d = new Date(date);
+  const wd = d.getDay(); // 0=Sun
+  if(wd===0) return WORKOUTS.find(w=>w.id==='rest') || WORKOUTS[0];
+  const dy = db.days[date];
+  const shift = (dy && dy.workout && dy.workout.shift) || 0;
+  const start = new Date(d.getFullYear(), 0, 0);
+  const doy = Math.floor((d - start) / 86400000);
+  const pool = WORKOUTS.filter(w=>w.id!=='rest');
+  return pool[(doy + shift) % pool.length];
 }
 function latestWeight(){
   const start = getStartWeight() || 0;
@@ -979,6 +1275,7 @@ function render(){
   renderCustom(d);
   renderWorkout(d);
   renderCalendar();
+  renderFoodCount();
 }
 function renderHero(d){
   const t = consumed(d); const g = getTarget();
@@ -1003,7 +1300,7 @@ function consumed(d){
   let t={kcal:0,fat:0,pro:0,carb:0};
   ['breakfast','lunch','dinner','snack'].forEach(mk=>{
     if(d.checked && d.checked[mk]){
-      const tot = mealTotal(mk, d.meals[mk]||0);
+      const tot = mealTotal(d, mk);
       t.kcal+=tot.kcal; t.fat+=tot.fat; t.pro+=tot.pro; t.carb+=tot.carb;
     }
   });
@@ -1036,7 +1333,8 @@ function renderMeals(d){
     const list = MEALS[mk];
     const idx = d.meals[mk] ?? 0;
     const combo = list[idx];
-    const tot = mealTotal(mk, idx);
+    const repl = mealRepl(d, mk);
+    const tot = mealTotal(d, mk);
     const checked = !!(d.checked && d.checked[mk]);
     const card = document.createElement('div');
     card.className='card';
@@ -1057,7 +1355,11 @@ function renderMeals(d){
         <div class="src">${combo.src}</div>
         <table>
           <tr><th>食材</th><th>份量</th><th>热量</th><th>脂肪g</th><th>蛋白g</th><th>碳水g</th></tr>
-          ${combo.items.map(i=>`<tr><td>${i.name}${altOf(i)?'<br><small style="color:var(--muted2);font-weight:400">'+altOf(i)+'</small>':''}</td><td>${i.amt}</td><td>${i.kcal}</td><td>${round1(i.fat)}</td><td>${round1(i.pro)}</td><td>${round1(i.carb)}</td></tr>`).join('')}
+          ${combo.items.map(orig=>{
+            const it = repl[orig.name] || orig;
+            const isSwap = !!repl[orig.name];
+            return `<tr><td>${it.name}${isSwap?'<span class="swapped">已换</span>':''}<button class="swap" onclick="openReplace('${mk}','${orig.name}')">⇄</button>${altOf(it)?'<br><small style="color:var(--muted2);font-weight:400">'+altOf(it)+'</small>':''}</td><td>${it.amt}</td><td>${it.kcal}</td><td>${round1(it.fat)}</td><td>${round1(it.pro)}</td><td>${round1(it.carb)}</td></tr>`;
+          }).join('')}
           <tr class="total"><td>合计</td><td></td><td>${round1(tot.kcal)}</td><td>${round1(tot.fat)}</td><td>${round1(tot.pro)}</td><td>${round1(tot.carb)}</td></tr>
         </table>
         <div class="meal-foot">
@@ -1096,15 +1398,15 @@ function renderWorkout(d){
   const done = d.workout.done || allDone;
   if(w.id==='rest'){
     el.innerHTML = `
-      <div class="wo-hero"><img src="${uimg(IMG.rest)}" alt="" onerror="this.remove()"><div class="ov"></div>
+      <div class="wo-hero"><img src="${uimg(IMG[w.img])}" alt="" onerror="this.remove()"><div class="ov"></div>
         <div class="txt">🧘 ${w.name}<small>恢复也是变强的一部分</small></div></div>
       <p style="color:var(--muted)">${w.note}</p>
       <button class="btn-primary ${done?'checked':''}" onclick="toggleWorkout()">${done?'✅ 已打卡，点击撤销':'今日休息打卡 ✓'}</button>`;
     return;
   }
   el.innerHTML = `
-    <div class="wo-hero"><img src="${uimg(IMG[w.id])}" alt="" onerror="this.remove()"><div class="ov"></div>
-      <div class="txt">${w.name}<small>居家徒手 / 哑铃 / 弹力带</small></div></div>
+    <div class="wo-hero"><img src="${uimg(IMG[w.img])}" alt="" onerror="this.remove()"><div class="ov"></div>
+      <div class="txt">${w.name}<small>居家徒手 · 低冲击 · 每天不同</small></div></div>
     ${w.warmup?`<div class="warmup">🔥 <b>热身</b>：${w.warmup}</div>`:''}
     <div class="wo-moves">
       ${w.moves.map((m,i)=>`
@@ -1117,7 +1419,8 @@ function renderWorkout(d){
           </div>
         </div>`).join('')}
     </div>
-    <div style="margin-top:14px;text-align:right">
+    <div style="margin-top:14px;display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap">
+      <button class="btn-ghost btn-small" onclick="reshuffleWorkout()">🔄 换一套动作</button>
       <button class="btn-primary ${done?'checked':''}" onclick="toggleWorkout()">${done?'✅ 训练完成':'完成训练打卡 ✓'}</button>
     </div>`;
 }
@@ -1176,7 +1479,7 @@ function dayDetailHTML(key, dy){
   rows.push(`<div class="row"><span class="k">蛋白质</span><span class="v">${round1(t.pro)} / ${g.protein||'—'} g</span></div>`);
   let meals='';
   ['breakfast','lunch','dinner','snack'].forEach(mk=>{
-    if(m[mk]){ const idx=(dy.meals&&dy.meals[mk])||0; const c=MEALS[mk][idx]; meals += `<span class="t">✅ ${label[mk]}：${c.name}</span>`; }
+    if(m[mk]){ const idx=(dy.meals&&dy.meals[mk])||0; const c=MEALS[mk][idx]; const r=mealRepl(dy,mk); const rs=Object.keys(r).map(o=>r[o].name).join('、'); meals += `<span class="t">✅ ${label[mk]}：${c.name}${rs?'（换了 '+rs+'）':''}</span>`; }
     else meals += `<span class="t">⬜ ${label[mk]}</span>`;
   });
   rows.push(`<div class="row"><span class="k">三餐打卡</span><span class="v tagline">${meals}</span></div>`);
@@ -1211,12 +1514,20 @@ function openCook(mk, idx){
 function closeCook(){ document.getElementById('cookOv').classList.remove('open'); }
 document.getElementById('cookOv').addEventListener('click', e=>{ if(e.target.id==='cookOv') closeCook(); });
 document.getElementById('dayOv').addEventListener('click', e=>{ if(e.target.id==='dayOv') closeDay(); });
-document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ closeCook(); closeDay(); } });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ closeCook(); closeDay(); closeReplace(); closeFoods(); } });
 
 /* ===== 交互 ===== */
-function swapMeal(mk, idx){ const d=day(); d.meals[mk]=+idx; save(); render(); }
+function swapMeal(mk, idx){ const d=day(); d.meals[mk]=+idx; if(d.mealReplace) delete d.mealReplace[mk]; save(); render(); }
 function toggleMeal(mk){ const d=day(); d.checked[mk]=!d.checked[mk]; save(); render(); }
 function toggleWorkout(){ const d=day(); d.workout.done=!d.workout.done; save(); render(); }
+function reshuffleWorkout(){
+  const d=day();
+  const pool = WORKOUTS.filter(w=>w.id!=='rest');
+  d.workout.shift = ((d.workout.shift||0)+1) % pool.length;
+  d.workout.ex = [];
+  d.workout.done = false;
+  save(); render();
+}
 function toggleEx(i, on){ const d=day(); if(!d.workout.ex) d.workout.ex=[]; d.workout.ex[i]=on;
   const w=workoutOf(todayKey());
   d.workout.done = w.moves.every((m,idx)=> d.workout.ex[idx]); save(); render(); }
@@ -1241,6 +1552,94 @@ function quickAdd(name,kcal,pro,fat,carb){
   const d=day(); d.custom.push({name,kcal,pro,fat,carb,meal:'加餐'}); save(); render();
 }
 function delCustom(i){ const d=day(); d.custom.splice(i,1); save(); render(); }
+
+/* ===== 食材库 + 食材替换 ===== */
+function renderFoodCount(){ const el=document.getElementById('foodCount'); if(el) el.textContent = getFoods().length ? ' · '+getFoods().length+' 种' : ''; }
+function openFoods(){ renderFoodList(); renderBuiltinFoods(); document.getElementById('foodsOv').classList.add('open'); }
+function closeFoods(){ document.getElementById('foodsOv').classList.remove('open'); renderFoodCount(); }
+function addFood(){
+  const name=document.getElementById('fdName').value.trim();
+  const kcal=+document.getElementById('fdKcal').value;
+  const pro=+document.getElementById('fdPro').value||0;
+  const fat=+document.getElementById('fdFat').value||0;
+  const carb=+document.getElementById('fdCarb').value||0;
+  if(!name || !kcal){ alert('请填写食材名和每100g热量'); return; }
+  const list = getFoods().filter(f=>f.name!==name);
+  list.push({name, kcal, fat, pro, carb});
+  setFoods(list); save(); pushProfile(); renderFoodList(); renderBuiltinFoods(); renderFoodCount();
+  ['fdName','fdKcal','fdPro','fdFat','fdCarb'].forEach(id=>document.getElementById(id).value='');
+}
+function delFood(i){ const list=getFoods(); list.splice(i,1); setFoods(list); save(); pushProfile(); renderFoodList(); renderFoodCount(); }
+function renderFoodList(){
+  const el=document.getElementById('foodList');
+  const list=getFoods();
+  el.innerHTML='';
+  if(!list.length){ el.innerHTML='<li style="color:var(--muted)">还没有自定义食材，添加后即可在每餐里「⇄」替换。</li>'; return; }
+  list.forEach((f,i)=>{
+    const li=document.createElement('li');
+    li.innerHTML=`<span>${f.name} · 每100g：${f.kcal}kcal / 蛋白${f.pro}g / 脂肪${f.fat}g / 碳水${f.carb}g</span><span class="del" onclick="delFood(${i})">✕</span>`;
+    el.appendChild(li);
+  });
+}
+function renderBuiltinFoods(){
+  const el=document.getElementById('builtinFoods');
+  if(el) el.textContent = Object.keys(FOODS).join('、');
+}
+let repMK=null, repName=null;
+function openReplace(mk, name){
+  repMK=mk; repName=name;
+  const d=day();
+  const repl=mealRepl(d,mk);
+  const combo=MEALS[mk][d.meals[mk]||0];
+  const orig=combo.items.find(i=>i.name===name) || {name,amt:'100g',kcal:0};
+  document.getElementById('repTitle').textContent='替换「'+name+'」';
+  document.getElementById('repCur').innerHTML='当前：'+name+' '+orig.amt+'（'+orig.kcal+' kcal）'+(repl[name]?' <b style="color:var(--accent)">已换成 '+repl[name].name+'</b>':'');
+  const sel=document.getElementById('repFood');
+  const custom=getFoods();
+  let html='<optgroup label="常用食材">'+Object.keys(FOODS).map(f=>`<option value="${f}" ${repl[name]&&repl[name].name===f?'selected':''}>${f}</option>`).join('')+'</optgroup>';
+  if(custom.length) html+='<optgroup label="我的食材">'+custom.map(f=>`<option value="${f.name}" ${repl[name]&&repl[name].name===f.name?'selected':''}>${f.name}</option>`).join('')+'</optgroup>';
+  sel.innerHTML=html;
+  document.getElementById('repAmt').value = repl[name] ? (parseFloat(repl[name].amt)||100) : 100;
+  document.getElementById('repRestore').style.display = repl[name] ? 'inline-block' : 'none';
+  document.getElementById('repHint').textContent='';
+  updateRepPreview();
+  document.getElementById('repOv').classList.add('open');
+}
+function repFoodData(name){
+  if(FOODS[name]) return FOODS[name];
+  const f=getFoods().find(x=>x.name===name);
+  return f ? {kcal:f.kcal,fat:f.fat,pro:f.pro,carb:f.carb} : null;
+}
+function updateRepPreview(){
+  const name=document.getElementById('repFood').value;
+  const g=+document.getElementById('repAmt').value||0;
+  const fd=repFoodData(name);
+  if(!fd || g<=0){ document.getElementById('repPreview').innerHTML=''; return; }
+  const k=g/100;
+  document.getElementById('repPreview').innerHTML=`≈ ${g}g：热量 <b>${Math.round(fd.kcal*k)}</b> kcal · 脂肪 ${round1(fd.fat*k)}g · 蛋白 ${round1(fd.pro*k)}g · 碳水 ${round1(fd.carb*k)}g`;
+}
+function doReplace(){
+  const name=document.getElementById('repFood').value;
+  const g=+document.getElementById('repAmt').value||0;
+  const fd=repFoodData(name);
+  if(!fd || g<=0){ document.getElementById('repHint').textContent='请选择食材并填写份量'; return; }
+  const k=g/100;
+  const d=day();
+  if(!d.mealReplace) d.mealReplace={};
+  if(!d.mealReplace[repMK]) d.mealReplace[repMK]={};
+  d.mealReplace[repMK][repName]={ name, amt:g+'g', kcal:Math.round(fd.kcal*k), fat:round1(fd.fat*k), pro:round1(fd.pro*k), carb:round1(fd.carb*k) };
+  save(); render(); closeReplace();
+}
+function restoreItem(){
+  const d=day();
+  if(d.mealReplace && d.mealReplace[repMK]){ delete d.mealReplace[repMK][repName]; if(!Object.keys(d.mealReplace[repMK]).length) delete d.mealReplace[repMK]; }
+  save(); render(); closeReplace();
+}
+function closeReplace(){ document.getElementById('repOv').classList.remove('open'); }
+document.getElementById('repOv').addEventListener('click', e=>{ if(e.target.id==='repOv') closeReplace(); });
+document.getElementById('foodsOv').addEventListener('click', e=>{ if(e.target.id==='foodsOv') closeFoods(); });
+document.getElementById('repFood').addEventListener('change', updateRepPreview);
+document.getElementById('repAmt').addEventListener('input', updateRepPreview);
 
 /* ===== 动作拆解弹窗 ===== */
 let curIdx = 0;
@@ -1300,7 +1699,8 @@ function saveSetup(){
   const kcal=+elv('sKcal'), weight=+elv('sWeight'), height=+elv('sHeight'), age=+elv('sAge');
   if(!kcal || !weight){ document.getElementById('setupHint').textContent='请至少填体重和目标热量'; return; }
   db.profile = { sex:elv('sSex'), height, weight, age, activity:elv('sAct'), pace:elv('sPace'),
-    kcal, protein:+elv('sProtein')||0, fat:+elv('sFat')||0, carb:+elv('sCarb')||0 };
+    kcal, protein:+elv('sProtein')||0, fat:+elv('sFat')||0, carb:+elv('sCarb')||0,
+    foods: getFoods() };
   save(); pushProfile(); closeSetup(); render();
 }
 document.getElementById('setupOv').addEventListener('click', e=>{ if(e.target.id==='setupOv' && db.profile) closeSetup(); });
