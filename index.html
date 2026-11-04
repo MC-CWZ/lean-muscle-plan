@@ -191,6 +191,35 @@
   .hist th:first-child,.hist td:first-child{text-align:left}
   .dot-ok{color:var(--good);font-weight:700}
   .dot-no{color:#3a4048}
+
+  /* ===== 打卡日历 ===== */
+  .cal-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+  .cal-nav .m{font-size:16px;font-weight:800}
+  .cal-nav button{background:var(--card2);border:1px solid var(--line);color:#d1d5db;border-radius:9px;padding:7px 12px;font-size:13px;font-weight:700;cursor:pointer}
+  .cal-nav button:hover{border-color:var(--accent);color:var(--accent)}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .cal-dow{text-align:center;font-size:11.5px;color:var(--muted2);font-weight:600;padding:4px 0}
+  .cal-day{position:relative;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;background:var(--card2);border:1px solid var(--line);cursor:pointer;font-size:14px;color:var(--ink);min-height:44px;transition:.12s}
+  .cal-day:hover{border-color:var(--accent)}
+  .cal-day.other{opacity:.28;cursor:default}
+  .cal-day.today{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+  .cal-day .mark{font-size:15px;line-height:1;height:17px}
+  .cal-day .n{font-weight:700}
+  .cal-day.full .mark{color:var(--good)}
+  .cal-day.part .mark{color:var(--accent)}
+  /* ===== 做法 + 详情弹窗 ===== */
+  .cook-method{margin-bottom:20px}
+  .cook-method:last-child{margin-bottom:0}
+  .cook-method h4{margin:0 0 4px;font-size:15px;font-weight:800}
+  .cook-method .cimg{height:140px;border-radius:10px;overflow:hidden;margin:8px 0 10px}
+  .cook-method .cimg img{width:100%;height:100%;object-fit:cover}
+  .cook-method ol{margin:0;padding-left:20px;font-size:14px;color:#d1d5db;line-height:1.9}
+  .daydetail .row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+  .daydetail .row:last-child{border-bottom:none}
+  .daydetail .k{color:var(--muted);flex:none}
+  .daydetail .v{text-align:right;font-weight:600}
+  .tagline{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+  .tagline .t{font-size:12px;padding:3px 9px;border-radius:999px;background:var(--card2);color:#d1d5db}
   footer{margin-top:40px;font-size:12px;color:var(--muted2);border-top:1px solid var(--line);padding-top:16px}
   .hidden{display:none}
 </style>
@@ -257,6 +286,16 @@
   <!-- 三餐推荐 -->
   <section>
     <h2 class="sec-title"><span class="em">🍽️</span>今日三餐推荐<span class="lbl">可下拉换搭配</span></h2>
+    <details class="card" style="margin-bottom:14px">
+      <summary style="cursor:pointer;font-weight:700;color:var(--accent)">🖐 没有秤？用手掌/拳头就能搭（点开看手测量法）</summary>
+      <div style="margin-top:10px;font-size:14px;color:#d1d5db;line-height:1.9">
+        <p style="margin:0 0 6px"><b style="color:var(--ink)">🖐 手掌 = 蛋白质</b>：一餐的肉/鱼/豆腐 ≈ 1 个手掌大小（不含手指、厚约一掌）</p>
+        <p style="margin:0 0 6px"><b style="color:var(--ink)">✊ 拳头 = 主食/碳水</b>：一餐的饭/面/薯类 ≈ 1 个拳头（熟食）</p>
+        <p style="margin:0 0 6px"><b style="color:var(--ink)">👍 拇指 = 脂肪</b>：一餐的油/坚果酱 ≈ 1 个拇指尖（或 1 汤匙油）</p>
+        <p style="margin:0 0 6px"><b style="color:var(--ink)">🌿 双手捧 = 蔬菜</b>：一餐蔬菜 ≈ 双手捧一捧，多吃无妨</p>
+        <p style="margin:0;color:var(--muted2);font-size:12.5px">速查：1碗熟饭≈150g · 1片全麦面包≈35g · 1个蛋≈50g · 1杯≈250ml · 1汤匙≈15g · 1茶匙≈5g · 1根香蕉≈120g</p>
+      </div>
+    </details>
     <div class="meals" id="meals"></div>
   </section>
 
@@ -297,11 +336,17 @@
     <div class="card" id="workout"></div>
   </section>
 
-  <!-- 历史记录 -->
+  <!-- 打卡日历 -->
   <section>
-    <h2 class="sec-title"><span class="em">📊</span>最近 7 天记录</h2>
+    <h2 class="sec-title"><span class="em">📅</span>打卡日历<span class="lbl">点某天看详情</span></h2>
     <div class="card">
-      <table class="hist" id="hist"></table>
+      <div class="cal-nav">
+        <button onclick="calShift(-1)">← 上月</button>
+        <span class="m" id="calTitle"></span>
+        <button onclick="calShift(1)">下月 →</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div style="margin-top:10px;font-size:12px;color:var(--muted2)">绿色 ✓ = 三餐 + 训练全完成 · 橙色 ● = 有部分打卡 · 点日期看当天详情</div>
     </div>
   </section>
 
@@ -393,6 +438,25 @@
     </div>
   </div>
 
+  <!-- 做法弹窗 -->
+  <div class="modal-ov" id="cookOv">
+    <div class="modal">
+      <div class="modal-head">
+        <div><h3 id="cookTitle"></h3><div class="tags"><span class="gear" style="margin-left:0;display:inline-block" id="cookCount"></span></div></div>
+        <button class="modal-close" onclick="closeCook()">✕</button>
+      </div>
+      <div class="modal-body" id="cookBody"></div>
+    </div>
+  </div>
+
+  <!-- 某天详情弹窗 -->
+  <div class="modal-ov" id="dayOv">
+    <div class="modal">
+      <div class="modal-head"><div><h3 id="dayTitle"></h3></div><button class="modal-close" onclick="closeDay()">✕</button></div>
+      <div class="modal-body daydetail" id="dayBody"></div>
+    </div>
+  </div>
+
   <footer>
     未登录时数据只保存在本地浏览器；登录后自动同步到云端，手机/电脑数据互通。<br>
     食谱与动作参考自各平台热门内容；营养数据为估算值，实际以食材标签为准。图片来自 Unsplash（免费图源，需联网显示）。你的目标与体重在「⚙️ 设置」中填写。
@@ -427,7 +491,15 @@ const IMG = {
   upper:'1526506118085-60ce8714f8c5',
   lower:'1581009146145-b5ef050c2e1e',
   core:'1599058917212-d750089bc07e',
-  rest:'1583454110551-21f2fa2afe61'
+  rest:'1583454110551-21f2fa2afe61',
+  cook_boil:'1547592180-85f173990554',
+  cook_steam:'1547592166-23ac45744acd',
+  cook_salad:'1512621776951-a57141f2eefd',
+  cook_grill:'1532550907401-a500c9a57435',
+  cook_pan:'1556910103-1c02745aae4d',
+  cook_prep:'1466637574441-749b8f19452f',
+  cook_oven:'1556909114-f6e7ad7d3136',
+  cook_mix:'1495521821757-a1efb6729352'
 };
 function uimg(id, w){ return `https://images.unsplash.com/photo-${id}?w=${w||800}&q=80&auto=format&fit=crop`; }
 
@@ -557,6 +629,114 @@ const MEALS = {
   ]
 };
 const MEAL_LABEL = { breakfast:'🥣 早餐', lunch:'🍱 午餐', dinner:'🥗 晚餐', snack:'🍌 加餐' };
+
+/* ===== 手测量法（没有秤也能搭） ===== */
+const ALT = {
+  '燕麦片|60g':'≈半碗', '燕麦片|30g':'≈3汤匙',
+  '低脂牛奶|250ml':'≈1杯', '低脂牛奶|200ml':'≈大半杯',
+  '花生酱|10g':'≈1茶匙',
+  '鸡胸肉|60g':'≈大半个手掌', '鸡胸肉|220g':'≈2个手掌', '鸡胸肉|180g':'≈1个半手掌', '鸡胸肉|150g':'≈1个半手掌',
+  '生菜+番茄|100g':'≈2片生菜+半个番茄',
+  '无糖豆浆|300ml':'≈1杯多',
+  '苹果|150g':'≈1个', '苹果|100g':'≈大半个',
+  '混合坚果|20g':'≈一小把', '混合坚果|10g':'≈半小把',
+  '甜玉米|150g':'≈1根',
+  '全麦面粉|30g':'≈2汤匙',
+  '混合蔬菜|100g':'≈1捧',
+  '无糖希腊酸奶|200g':'≈1杯', '无糖希腊酸奶|150g':'≈大半杯',
+  '蓝莓|100g':'≈一小碗', '蓝莓|50g':'≈半碗',
+  '蜂蜜|10g':'≈半汤匙',
+  '糙米饭(熟)|350g':'≈2碗', '糙米饭(熟)|150g':'≈1碗',
+  '西兰花|200g':'≈2捧', '西兰花|150g':'≈1捧半',
+  '胡萝卜|100g':'≈半根',
+  '橄榄油|10g':'≈2茶匙', '橄榄油|5g':'≈1茶匙', '橄榄油|8g':'≈1茶匙半',
+  '杂粮饭(熟)|350g':'≈2碗',
+  '瘦牛肉|250g':'≈2个半手掌', '瘦牛肉|200g':'≈2个手掌',
+  '青椒洋葱|150g':'≈1个青椒+半个洋葱',
+  '荞麦面(生)|120g':'≈1把干面',
+  '黄瓜丝+胡萝卜|150g':'≈1小碗',
+  '芝麻酱|10g':'≈1茶匙',
+  '豆腐|100g':'≈半块', '豆腐|200g':'≈1块(2/3盒)',
+  '玉米饭(熟)|350g':'≈2碗',
+  '龙利鱼|220g':'≈1块鱼柳',
+  '番茄|200g':'≈1个半',
+  '青菜|150g':'≈2捧',
+  '玉米粒|100g':'≈大半碗',
+  '金针菇|100g':'≈1小把',
+  '玉米|150g':'≈1根', '玉米|100g':'≈大半根',
+  '山药|100g':'≈半根', '山药|150g':'≈大半根', '山药|200g':'≈1根',
+  '鳕鱼|250g':'≈1块',
+  '紫薯|200g':'≈1个拳头',
+  '西兰花+生菜|200g':'≈2捧',
+  '青菜(油麦菜/生菜)|250g':'≈3捧',
+  '虾仁|250g':'≈2个半手掌',
+  '冬瓜|300g':'≈巴掌大1块'
+};
+function altOf(item){ return ALT[item.name+'|'+item.amt] || ''; }
+
+/* ===== 烹饪做法库 ===== */
+const COOK = {
+  '燕麦牛奶鸡蛋碗': [
+    {m:'水煮燕麦（热）', img:'cook_boil', steps:['燕麦片加牛奶入锅，小火煮 3 分钟，边煮边搅防粘','同时另锅水煮蛋 8–10 分钟','盛碗后放香蕉片、淋一茶匙花生酱即可']},
+    {m:'隔夜燕麦杯（省时）', img:'cook_mix', steps:['燕麦片+牛奶装进带盖杯，冷藏过夜','早上取出加煮蛋、香蕉片、花生酱','直接冷吃，或微波 1 分钟加热']}
+  ],
+  '全麦鸡胸三明治+豆浆': [
+    {m:'香煎三明治', img:'cook_pan', steps:['鸡胸肉提前少油煎熟、切薄片','全麦面包夹煎蛋、生菜、番茄、鸡胸片','平底锅小火烘 1 分钟让面包变脆，配无糖豆浆']},
+    {m:'烤三明治机', img:'cook_oven', steps:['把煎蛋、鸡胸片、生菜番茄夹进面包','三明治机压烤 3 分钟至表面金黄']}
+  ],
+  '玉米+鸡蛋煎饼+牛奶': [
+    {m:'平底锅煎饼', img:'cook_pan', steps:['全麦面粉+鸡蛋+切碎蔬菜加水搅成糊','平底锅刷薄油，倒一勺面糊摊圆，两面煎至金黄','甜玉米蒸熟作主食，配一杯牛奶']},
+    {m:'不粘锅无油煎', img:'cook_pan', steps:['用不粘锅小火、不加油直接煎','面糊摊薄一点，翻面后盖盖焖 1 分钟更软']}
+  ],
+  '希腊酸奶碗+鸡蛋+坚果': [
+    {m:'直接组装（最快）', img:'cook_mix', steps:['无糖酸奶打底，铺燕麦片、蓝莓、坚果','淋蜂蜜，配两个水煮蛋']},
+    {m:'烤燕麦脆', img:'cook_oven', steps:['燕麦片拌一点蜂蜜，180℃ 烤 10 分钟变脆','冷却后撒在酸奶上，口感更好']}
+  ],
+  '鸡胸肉西兰花糙米饭': [
+    {m:'香煎鸡胸', img:'cook_pan', steps:['鸡胸肉横切薄片，少油两面各煎 2–3 分钟至熟','西兰花掰小朵焯水 2 分钟捞出','糙米饭打底，摆上鸡胸和西兰花']},
+    {m:'水煮鸡胸（嫩）', img:'cook_boil', steps:['鸡胸肉冷水下锅，小火煮 15 分钟后关火焖 5 分钟','捞出放凉手撕成丝，西兰花焯水','拌少许盐和黑胡椒']},
+    {m:'烤箱一锅烤', img:'cook_oven', steps:['鸡胸肉、西兰花刷薄油摆烤盘','200℃ 烤 18 分钟，中途翻一次面']}
+  ],
+  '杂粮饭+瘦牛肉炒杂蔬': [
+    {m:'大火快炒', img:'cook_pan', steps:['牛肉逆纹切丝，加少许盐腌 5 分钟','热锅少油，牛肉大火快炒至变色盛出','再炒青椒洋葱西兰花，回锅牛肉翻匀调味']},
+    {m:'水煮牛肉片', img:'cook_boil', steps:['牛肉切薄片，沸水焯熟捞起','蔬菜焯水，一起拌低盐酱油+蒜末']}
+  ],
+  '鸡丝荞麦凉面': [
+    {m:'凉拌', img:'cook_mix', steps:['荞麦面煮熟后过凉水沥干','鸡胸肉煮熟手撕成丝，黄瓜胡萝卜切丝','芝麻酱加少许温水调开，与面拌匀']},
+    {m:'温拌', img:'cook_pan', steps:['面煮熟不冰镇，趁温拌入食材和酱汁，冬天更舒服']}
+  ],
+  '番茄龙利鱼+玉米饭': [
+    {m:'番茄炖鱼', img:'cook_boil', steps:['番茄切块炒出汁，加水烧开','下龙利鱼块煮 5 分钟至熟，加盐调味']},
+    {m:'清蒸鱼', img:'cook_steam', steps:['鱼块铺盘，上面放番茄片、姜丝','水开后上锅蒸 8 分钟，淋少许蒸鱼豉油']}
+  ],
+  '番茄金针菇豆腐汤+玉米': [
+    {m:'一锅炖汤', img:'cook_boil', steps:['番茄炒出汁，加水烧开','下豆腐块、金针菇、鸡胸丝煮 10 分钟','加盐调味，玉米蒸熟作主食']},
+    {m:'少油炒汤', img:'cook_pan', steps:['食材先少油炒香再加水煮汤，汤更浓']}
+  ],
+  '清蒸鳕鱼+白灼蔬菜+紫薯': [
+    {m:'清蒸鳕鱼', img:'cook_steam', steps:['鳕鱼铺姜丝，水开上锅蒸 8 分钟','西兰花生菜白灼 1 分钟捞出','紫薯蒸熟，淋少许蒸鱼豉油']},
+    {m:'香煎鳕鱼', img:'cook_pan', steps:['鳕鱼用厨房纸吸干水，少油两面各煎 3 分钟至金黄']}
+  ],
+  '牛肉炒青菜+少量糙米': [
+    {m:'大火快炒', img:'cook_pan', steps:['牛肉逆纹切薄片，大火快炒至变色盛出','下青菜翻炒至断生，回锅牛肉调味']},
+    {m:'牛肉青菜汤', img:'cook_boil', steps:['牛肉片+青菜煮成清汤，配糙米饭更清淡']}
+  ],
+  '冬瓜虾仁汤+蒸山药': [
+    {m:'清汤', img:'cook_boil', steps:['冬瓜切块煮软','下虾仁煮 3 分钟至变红，加盐；山药蒸熟']},
+    {m:'虾仁蛋花羹', img:'cook_pan', steps:['冬瓜虾仁煮好后淋入蛋液成蛋花，勾薄芡更浓稠']}
+  ],
+  '酸奶+蓝莓+坚果': [
+    {m:'直接组装', img:'cook_mix', steps:['酸奶打底，铺蓝莓、撒坚果即可，2 分钟搞定']}
+  ],
+  '蛋白奶昔+香蕉': [
+    {m:'摇摇杯', img:'cook_mix', steps:['蛋白粉加水或牛奶倒入摇摇杯，用力摇匀','配一根香蕉，训练后 30 分钟内喝']},
+    {m:'搅拌机奶昔', img:'cook_mix', steps:['蛋白粉+香蕉+牛奶+冰块一起打匀，口感更顺滑']}
+  ],
+  '鸡蛋+牛奶': [
+    {m:'水煮蛋+热牛奶', img:'cook_boil', steps:['水煮蛋两个，热一杯牛奶即可']},
+    {m:'微波蒸蛋', img:'cook_oven', steps:['鸡蛋打散加牛奶，盖盖微波 1–2 分钟成嫩蛋羹']}
+  ]
+};
 
 /* ===== 训练库 ===== */
 const WORKOUTS = [
@@ -798,7 +978,7 @@ function render(){
   renderMeals(d);
   renderCustom(d);
   renderWorkout(d);
-  renderHistory();
+  renderCalendar();
 }
 function renderHero(d){
   const t = consumed(d); const g = getTarget();
@@ -877,7 +1057,7 @@ function renderMeals(d){
         <div class="src">${combo.src}</div>
         <table>
           <tr><th>食材</th><th>份量</th><th>热量</th><th>脂肪g</th><th>蛋白g</th><th>碳水g</th></tr>
-          ${combo.items.map(i=>`<tr><td>${i.name}</td><td>${i.amt}</td><td>${i.kcal}</td><td>${round1(i.fat)}</td><td>${round1(i.pro)}</td><td>${round1(i.carb)}</td></tr>`).join('')}
+          ${combo.items.map(i=>`<tr><td>${i.name}${altOf(i)?'<br><small style="color:var(--muted2);font-weight:400">'+altOf(i)+'</small>':''}</td><td>${i.amt}</td><td>${i.kcal}</td><td>${round1(i.fat)}</td><td>${round1(i.pro)}</td><td>${round1(i.carb)}</td></tr>`).join('')}
           <tr class="total"><td>合计</td><td></td><td>${round1(tot.kcal)}</td><td>${round1(tot.fat)}</td><td>${round1(tot.pro)}</td><td>${round1(tot.carb)}</td></tr>
         </table>
         <div class="meal-foot">
@@ -887,7 +1067,10 @@ function renderMeals(d){
             <span class="pill p-fat">脂肪 ${round1(tot.fat)}g</span>
             <span class="pill p-carb">碳水 ${round1(tot.carb)}g</span>
           </div>
-          <button class="btn-primary ${checked?'checked':''}" onclick="toggleMeal('${mk}')">${checked?'✅ 已打卡，点击撤销':'打卡 ✓'}</button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn-ghost btn-small" onclick="openCook('${mk}', ${idx})">🍳 做法</button>
+            <button class="btn-primary ${checked?'checked':''}" onclick="toggleMeal('${mk}')">${checked?'✅ 已打卡，点击撤销':'打卡 ✓'}</button>
+          </div>
         </div>
       </div>`;
     el.appendChild(card);
@@ -938,26 +1121,97 @@ function renderWorkout(d){
       <button class="btn-primary ${done?'checked':''}" onclick="toggleWorkout()">${done?'✅ 训练完成':'完成训练打卡 ✓'}</button>
     </div>`;
 }
-function renderHistory(){
-  const el = document.getElementById('hist');
-  const rows=[];
-  for(let i=0;i<7;i++){
-    const dt=new Date(); dt.setDate(dt.getDate()-i);
-    const k=dk(dt); const dy=db.days[k]||{checked:{},custom:[],workout:{}};
-    const t = consumed(dy);
-    const mealCount = ['breakfast','lunch','dinner'].filter(mk=>dy.checked&&dy.checked[mk]).length;
-    const wo = (dy.workout&&dy.workout.done);
-    const label = i===0?'今天': (i===1?'昨天': (dt.getMonth()+1)+'/'+dt.getDate());
-    rows.push(`<tr>
-      <td>${label}</td>
-      <td>${round1(t.kcal)}</td>
-      <td>${round1(t.pro)}</td>
-      <td>${mealCount}/3</td>
-      <td>${wo?'<span class="dot-ok">✓</span>':'<span class="dot-no">—</span>'}</td>
-    </tr>`);
+/* ===== 打卡日历 ===== */
+let calYear, calMonth;
+function initCal(){ const d=new Date(); calYear=d.getFullYear(); calMonth=d.getMonth(); }
+function renderCalendar(){
+  if(calYear===undefined) initCal();
+  document.getElementById('calTitle').textContent = calYear+'年'+(calMonth+1)+'月';
+  const el = document.getElementById('calGrid');
+  const first = new Date(calYear, calMonth, 1);
+  const startDow = first.getDay();
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const today = todayKey();
+  const dows = ['日','一','二','三','四','五','六'];
+  let html = dows.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  for(let i=0;i<startDow;i++) html += `<div class="cal-day other"></div>`;
+  for(let d=1; d<=daysInMonth; d++){
+    const key = calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const dy = db.days[key];
+    let cls='cal-day', mark='';
+    if(key===today) cls += ' today';
+    if(dy){
+      const full = isFullDay(dy);
+      cls += full ? ' full' : ' part';
+      mark = full ? '✓' : '●';
+    }
+    html += `<div class="${cls}" onclick="openDay('${key}')"><span class="mark">${mark}</span><span class="n">${d}</span></div>`;
   }
-  el.innerHTML = `<tr><th>日期</th><th>热量 kcal</th><th>蛋白 g</th><th>正餐打卡</th><th>训练</th></tr>` + rows.join('');
+  el.innerHTML = html;
 }
+function calShift(d){
+  calMonth += d;
+  if(calMonth<0){ calMonth=11; calYear--; }
+  else if(calMonth>11){ calMonth=0; calYear++; }
+  renderCalendar();
+}
+function isFullDay(dy){
+  const m = dy.checked||{};
+  const mc = ['breakfast','lunch','dinner'].filter(k=>m[k]).length;
+  return mc>=3 && dy.workout && dy.workout.done;
+}
+function openDay(key){
+  const dy = db.days[key] || {};
+  document.getElementById('dayTitle').textContent = key + ' · 打卡详情';
+  document.getElementById('dayBody').innerHTML = dayDetailHTML(key, dy);
+  document.getElementById('dayOv').classList.add('open');
+}
+function closeDay(){ document.getElementById('dayOv').classList.remove('open'); }
+function dayDetailHTML(key, dy){
+  const t = consumed(dy); const g = getTarget();
+  const m = dy.checked||{};
+  const label = {breakfast:'早餐',lunch:'午餐',dinner:'晚餐',snack:'加餐'};
+  const rows = [];
+  rows.push(`<div class="row"><span class="k">摄入热量</span><span class="v">${round1(t.kcal)} / ${g.kcal||'—'} kcal</span></div>`);
+  rows.push(`<div class="row"><span class="k">蛋白质</span><span class="v">${round1(t.pro)} / ${g.protein||'—'} g</span></div>`);
+  let meals='';
+  ['breakfast','lunch','dinner','snack'].forEach(mk=>{
+    if(m[mk]){ const idx=(dy.meals&&dy.meals[mk])||0; const c=MEALS[mk][idx]; meals += `<span class="t">✅ ${label[mk]}：${c.name}</span>`; }
+    else meals += `<span class="t">⬜ ${label[mk]}</span>`;
+  });
+  rows.push(`<div class="row"><span class="k">三餐打卡</span><span class="v tagline">${meals}</span></div>`);
+  if(dy.workout && (dy.workout.done || (dy.workout.ex||[]).length)){
+    const w = workoutOf(key);
+    const names = w.moves.filter((mm,i)=>dy.workout.ex&&dy.workout.ex[i]).map(mm=>mm.name);
+    const woStr = dy.workout.done ? ('✅ '+w.name) : ('部分：'+(names.join('、')||'—'));
+    rows.push(`<div class="row"><span class="k">力量训练</span><span class="v">${woStr}</span></div>`);
+  } else {
+    rows.push(`<div class="row"><span class="k">力量训练</span><span class="v">未打卡</span></div>`);
+  }
+  const cust = dy.custom||[];
+  rows.push(`<div class="row"><span class="k">额外记录</span><span class="v">${cust.length?cust.map(c=>c.name+' '+c.kcal+'kcal').join('、'):'无'}</span></div>`);
+  if(dy.weight!=null) rows.push(`<div class="row"><span class="k">当天体重</span><span class="v">${dy.weight} kg</span></div>`);
+  return rows.join('');
+}
+
+/* ===== 烹饪做法弹窗 ===== */
+function openCook(mk, idx){
+  const combo = MEALS[mk][idx];
+  const methods = COOK[combo.name] || [];
+  document.getElementById('cookTitle').textContent = combo.name + ' · 做法';
+  document.getElementById('cookCount').textContent = methods.length + ' 种做法';
+  document.getElementById('cookBody').innerHTML = methods.map(m=>`
+    <div class="cook-method">
+      <h4>🍳 ${m.m}</h4>
+      <div class="cimg"><img src="${uimg(IMG[m.img]||IMG.lunch)}" alt="" onerror="this.remove()"></div>
+      <ol>${m.steps.map(s=>`<li>${s}</li>`).join('')}</ol>
+    </div>`).join('') || '<p style="color:var(--muted)">暂无做法。</p>';
+  document.getElementById('cookOv').classList.add('open');
+}
+function closeCook(){ document.getElementById('cookOv').classList.remove('open'); }
+document.getElementById('cookOv').addEventListener('click', e=>{ if(e.target.id==='cookOv') closeCook(); });
+document.getElementById('dayOv').addEventListener('click', e=>{ if(e.target.id==='dayOv') closeDay(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ closeCook(); closeDay(); } });
 
 /* ===== 交互 ===== */
 function swapMeal(mk, idx){ const d=day(); d.meals[mk]=+idx; save(); render(); }
